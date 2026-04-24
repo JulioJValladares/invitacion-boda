@@ -18,6 +18,7 @@ const rsvpStatus = document.getElementById("rsvpStatus");
 const rsvpSubmit = document.getElementById("rsvpSubmit");
 const rsvpFormContainer = document.getElementById("rsvpFormContainer");
 const respuestaField = document.getElementById("respuesta");
+const cuposConfirmadosField = document.getElementById("cuposConfirmados");
 const telefonoField = document.getElementById("telefono");
 const mensajeField = document.getElementById("mensaje");
 const rsvpThankYou = document.getElementById("rsvpThankYou");
@@ -76,6 +77,7 @@ let noteAnimationTween = null;
 let musicNotesTimer = null;
 let shouldAutoResumeOnEnvelopeOpen = true;
 let currentGuestName = "";
+let currentGuestCupos = null;
 // Bloqueo de doble click durante la animacion del sobre.
 let isEnvelopeAnimating = false;
 let regalosCopyStatusTimer = null;
@@ -1769,9 +1771,61 @@ function setRsvpStatus(message, type = "") {
 }
 
 function setRsvpIdentity(name, cupos) {
+  const parsedCupos = Number(cupos);
+  currentGuestCupos = Number.isFinite(parsedCupos) ? parsedCupos : null;
   currentGuestName = name || currentGuestName || "";
   rsvpGreeting.textContent = name ? `Hola, ${name}` : "Hola";
   rsvpCupos.textContent = `Cupos asignados: ${cupos ?? "CUPOS"}`;
+}
+
+function renderCuposConfirmadosOptions(cupos, selectedValue = "") {
+  if (!cuposConfirmadosField) return;
+
+  const maxCupos = Number(cupos);
+  cuposConfirmadosField.innerHTML = "";
+
+  if (!Number.isFinite(maxCupos) || maxCupos < 1) {
+    const fallbackOption = document.createElement("option");
+    fallbackOption.value = "";
+    fallbackOption.textContent = "Sin cupos disponibles";
+    cuposConfirmadosField.appendChild(fallbackOption);
+    cuposConfirmadosField.value = "";
+    cuposConfirmadosField.disabled = true;
+    return;
+  }
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = "Selecciona una cantidad";
+  cuposConfirmadosField.appendChild(placeholderOption);
+
+  for (let cantidad = 1; cantidad <= maxCupos; cantidad += 1) {
+    const option = document.createElement("option");
+    option.value = String(cantidad);
+    option.textContent = String(cantidad);
+    cuposConfirmadosField.appendChild(option);
+  }
+
+  cuposConfirmadosField.disabled = false;
+  cuposConfirmadosField.value = selectedValue && Number(selectedValue) >= 1 && Number(selectedValue) <= maxCupos
+    ? String(selectedValue)
+    : "1";
+}
+
+function syncCuposConfirmadosByRespuesta() {
+  if (!respuestaField || !cuposConfirmadosField) return;
+
+  const confirma = respuestaField.value === "CONFIRMA";
+  if (confirma) {
+    cuposConfirmadosField.required = true;
+    cuposConfirmadosField.value = cuposConfirmadosField.value && Number(cuposConfirmadosField.value) >= 1
+      ? cuposConfirmadosField.value
+      : "1";
+    return;
+  }
+
+  cuposConfirmadosField.required = false;
+  cuposConfirmadosField.value = "";
 }
 
 function getRsvpPostContent(estado, name) {
@@ -1891,7 +1945,7 @@ function revealRsvpPostConfirmation(estado, guestName, options = {}) {
 }
 
 function setRsvpFormInteractivity(enabled, hideSubmit = false) {
-  const elements = [respuestaField, telefonoField, mensajeField];
+  const elements = [respuestaField, cuposConfirmadosField, telefonoField, mensajeField];
   elements.forEach((el) => {
     el.disabled = !enabled;
   });
@@ -1996,6 +2050,7 @@ async function submitRsvp(payload) {
     action: "submit",
     id: payload.id,
     respuesta: payload.respuesta,
+    cuposConfirmados: payload.cuposConfirmados ?? "",
     telefono: payload.telefono,
     mensaje: payload.mensaje || "",
     userAgent: payload.userAgent || ""
@@ -2072,6 +2127,8 @@ async function initializeRsvp() {
     }
 
     setRsvpIdentity(data.nombre, data.cupos);
+    renderCuposConfirmadosOptions(data.cupos);
+    syncCuposConfirmadosByRespuesta();
 
     if (FINAL_RSVP_STATES.has(data.estado)) {
       lockRsvpFromServerState(guestId, data.estado, "Tu respuesta ya fue registrada. Gracias.", {
@@ -2117,6 +2174,8 @@ async function initializeRsvp() {
 
     const telefono = telefonoField.value.trim();
     const respuesta = respuestaField.value;
+    const cuposConfirmadosRaw = cuposConfirmadosField ? cuposConfirmadosField.value : "";
+    const cuposConfirmados = Number(cuposConfirmadosRaw);
     const mensaje = mensajeField.value.trim();
 
     if (!telefono) {
@@ -2129,6 +2188,23 @@ async function initializeRsvp() {
       return;
     }
 
+    if (respuesta === "CONFIRMA") {
+      if (!Number.isInteger(cuposConfirmados)) {
+        setRsvpStatus("Selecciona cuantos cupos vas a confirmar.", "error");
+        return;
+      }
+
+      if (cuposConfirmados < 1) {
+        setRsvpStatus("Debes confirmar al menos 1 cupo.", "error");
+        return;
+      }
+
+      if (Number.isInteger(currentGuestCupos) && cuposConfirmados > currentGuestCupos) {
+        setRsvpStatus("La cantidad confirmada no puede superar tus cupos asignados.", "error");
+        return;
+      }
+    }
+
     rsvpSubmit.disabled = true;
     setRsvpStatus("Enviando confirmacion...", "warn");
 
@@ -2136,6 +2212,7 @@ async function initializeRsvp() {
       const result = await submitRsvp({
         id: guestId,
         respuesta,
+        cuposConfirmados: respuesta === "CONFIRMA" ? cuposConfirmados : 0,
         telefono,
         mensaje,
         userAgent: navigator.userAgent || ""
@@ -2168,6 +2245,10 @@ async function initializeRsvp() {
       setRsvpStatus("No se pudo enviar por un problema de red. Intenta nuevamente.", "error");
     }
   });
+
+  if (respuestaField) {
+    respuestaField.addEventListener("change", syncCuposConfirmadosByRespuesta);
+  }
 }
 
 const weddingDate = new Date("2026-06-27T17:00:00");

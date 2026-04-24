@@ -8,7 +8,8 @@ var COL = {
   ESTADO: 4,
   TIMESTAMP_CONFIRMACION: 5,
   TELEFONO_CONFIRMADO: 6,
-  MENSAJE_CONFIRMADO: 7
+  MENSAJE_CONFIRMADO: 7,
+  CUPOS_CONFIRMADOS: 8
 };
 
 var ESTADO_PENDIENTE = "PENDIENTE";
@@ -86,6 +87,7 @@ function doPost(e) {
     var respuesta = normalizeRespuesta_(payload.respuesta);
     var telefono = String(payload.telefono || "").trim();
     var mensaje = String(payload.mensaje || "").trim();
+    var cuposConfirmados = parseCuposConfirmados_(payload.cuposConfirmados);
     var userAgent = String(payload.userAgent || "").trim();
 
     if (!id || !respuesta || !telefono) {
@@ -143,12 +145,53 @@ function doPost(e) {
     }
 
     var estadoFinal = (respuesta === "CONFIRMA") ? ESTADO_CONFIRMADO : ESTADO_NO_ASISTE;
+    var cuposAsignados = parseCuposAsignados_(found.cupos);
+    var cuposParaGuardar = "";
+
+    if (respuesta === "CONFIRMA") {
+      if (cuposConfirmados === null) {
+        return jsonResponse_({
+          ok: false,
+          code: "INVALID_CUPOS_CONFIRMADOS",
+          message: "Debes indicar cuantos cupos confirmas."
+        });
+      }
+
+      if (cuposConfirmados < 1) {
+        return jsonResponse_({
+          ok: false,
+          code: "INVALID_CUPOS_CONFIRMADOS",
+          message: "Debes confirmar al menos 1 cupo."
+        });
+      }
+
+      if (cuposConfirmados > cuposAsignados) {
+        return jsonResponse_({
+          ok: false,
+          code: "CUPOS_EXCEEDED",
+          message: "La cantidad confirmada no puede superar los cupos asignados."
+        });
+      }
+
+      cuposParaGuardar = cuposConfirmados;
+    } else if (respuesta === "NO_ASISTE") {
+      if (cuposConfirmados !== null && cuposConfirmados > cuposAsignados) {
+        return jsonResponse_({
+          ok: false,
+          code: "CUPOS_EXCEEDED",
+          message: "La cantidad confirmada no puede superar los cupos asignados."
+        });
+      }
+      cuposParaGuardar = (cuposConfirmados === null) ? 0 : cuposConfirmados;
+    }
+
     var timestamp = new Date();
 
     invitadosSheet.getRange(found.row, COL.ESTADO).setValue(estadoFinal);
     invitadosSheet.getRange(found.row, COL.TIMESTAMP_CONFIRMACION).setValue(timestamp);
     invitadosSheet.getRange(found.row, COL.TELEFONO_CONFIRMADO).setValue(telefono);
     invitadosSheet.getRange(found.row, COL.MENSAJE_CONFIRMADO).setValue(mensaje);
+    invitadosSheet.getRange(found.row, COL.CUPOS_CONFIRMADOS).setValue(cuposParaGuardar);
 
     logSheet.appendRow([
       timestamp,
@@ -156,6 +199,7 @@ function doPost(e) {
       found.nombre,
       found.cupos,
       respuesta,
+      cuposParaGuardar,
       telefono,
       mensaje,
       userAgent
@@ -166,6 +210,7 @@ function doPost(e) {
       id: String(found.id),
       nombre: String(found.nombre || ""),
       cupos: Number(found.cupos || 0),
+      cuposConfirmados: cuposParaGuardar,
       estadoFinal: estadoFinal
     });
   } catch (err) {
@@ -182,7 +227,7 @@ function findInvitadoById_(sheet, id) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return null;
 
-  var values = sheet.getRange(2, 1, lastRow - 1, COL.MENSAJE_CONFIRMADO).getValues();
+  var values = sheet.getRange(2, 1, lastRow - 1, COL.CUPOS_CONFIRMADOS).getValues();
   var target = normalizeId_(id);
 
   for (var i = 0; i < values.length; i++) {
@@ -237,6 +282,21 @@ function normalizeRespuesta_(value) {
   var v = String(value || "").trim().toUpperCase();
   if (v === "CONFIRMA" || v === "NO_ASISTE") return v;
   return "";
+}
+
+function parseCuposAsignados_(value) {
+  var cupos = Number(value);
+  if (!isFinite(cupos) || cupos < 0) return 0;
+  return Math.floor(cupos);
+}
+
+function parseCuposConfirmados_(value) {
+  var raw = String(value || "").trim();
+  if (!raw) return null;
+  var parsed = Number(raw);
+  if (!isFinite(parsed)) return null;
+  if (Math.floor(parsed) !== parsed) return null;
+  return parsed;
 }
 
 function isValidPhone_(phone) {
