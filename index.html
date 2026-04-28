@@ -30,188 +30,242 @@
     </section>
 
     <section class="invitation" id="invitationContent" hidden>
-      <article class="hero-section flow-section reveal-section glass-card">
-        <p class="kicker">Nos casamos</p>
-        <h1 class="hero-names">Julio &amp; Susan</h1>
-        <p class="hero-quote">Eres mi hoy, mi mañana y mi para siempre.</p>
-      </article>
+      <div class="wave-frame wave-frame--hero wave-section--transparent flow-section">
+        <article class="hero-section flow-section reveal-section glass-card">
+          <p class="kicker">Nos casamos</p>
+          <h1 class="hero-names">Julio &amp; Susan</h1>
+          <p class="hero-quote">Eres mi hoy, mi mañana y mi para siempre.</p>
+        </article>
+      </div>
 
-      <article class="hero-date-section flow-section reveal-section card-beige">
-        <!-- Icono decorativo de seccion -->
-        <img src="assets/icons/anillos.svg" alt="Anillo" class="section-icon-img">
-        <h2 class="ceremony-title">Ceremonia</h2>
-        <p class="ceremony-month">Junio</p>
+      <div class="wave-frame wave-frame--ceremony wave-section--filled flow-section">
+        <article class="hero-date-section flow-section reveal-section card-beige">
+          <img src="assets/icons/anillos.svg" alt="Anillo" class="section-icon-img">
+          <h2 class="section-title ceremony-title">Ceremonia</h2>
+          <p class="ceremony-month">Junio</p>
 
-        <div class="ceremony-date-row" aria-label="Fecha y hora de la ceremonia">
-          <p class="ceremony-date-side">Sabado</p>
-          <div class="ceremony-day-block">
-            <p class="ceremony-day">27</p>
-            <p class="ceremony-year">2026</p>
-          </div>
-          <p class="ceremony-date-side">5:00 PM</p>
-        </div>
-
-        <p class="hero-date-line">Salón Colonial</p>
-
-      </article>
-
-      <section class="info-section countdown-section flow-section reveal-section card-beige" aria-label="Faltan">
-        <img src="assets/icons/calendario.gif" alt="Anillo decorativo" class="section-icon-img calendar-icon">
-        <h2 class="section-title">FALTAN</h2>
-        <div class="countdown" id="countdown" aria-live="polite">
-          <div><span id="days">0</span><small>Dias</small></div>
-          <div><span id="hours">0</span><small>Horas</small></div>
-          <div><span id="minutes">0</span><small>Min</small></div>
-          <div><span id="seconds">0</span><small>Seg</small></div>
-        </div>
-      </section>
-
-      <section class="info-section venue-section flow-section reveal-section card-beige" aria-label="Lugar de la ceremonia">
-        <img src="assets/icons/ceremonia.gif" alt="Anillo decorativo" class="section-icon-img">
-        <h2 class="section-title">LUGAR DE LA CEREMONIA</h2>
-        <p class="location-line">Jardin El cerro, Fraijanes</p>
-        <a class="waze-btn btn-primary" href="https://waze.com/ul/h9fxdmx9bu" target="_blank" rel="noopener noreferrer">
-          Ver ubicacion en Waze
-        </a>
-      </section>
-
-      <section class="moments-section flow-section reveal-section card-beige" id="nuestros-momentos" aria-label="Nuestros momentos">
-        <span class="camera-icon-wrap" aria-hidden="true">
-          <img src="assets/icons/fotos.gif" alt="" class="section-icon-img camera-icon">
-          <span class="camera-focus-ring"></span>
-          <span class="camera-sheen"></span>
-        </span>
-        <h2 class="section-title" id="momentsTitle">Nuestros Momentos</h2>
-        <p class="moments-subtitle section-subtitle" id="momentsSubtitle"></p>
-
-        <div class="moments-carousel" id="momentsCarousel" aria-roledescription="carousel">
-          <div class="moments-track" id="momentsTrack"></div>
-
-          <button class="moments-arrow moments-prev" id="momentsPrev" type="button" aria-label="Imagen anterior">
-            &#10094;
-          </button>
-          <button class="moments-arrow moments-next" id="momentsNext" type="button" aria-label="Imagen siguiente">
-            &#10095;
-          </button>
-
-          <div class="moments-dots" id="momentsDots" aria-label="Selector de imagen"></div>
-        </div>
-      </section>
-
-      <section class="info-section itinerary-section flow-section reveal-section card-beige" id="itinerario" aria-label="Itinerario">
-        <h2 class="section-title" id="itineraryTitle">Itinerario</h2>
-        <div class="itinerary-shell">
-          <ol class="itinerary-list" id="timelineList" aria-label="Cronograma del evento"></ol>
-        </div>
-      </section>
-
-      <section class="info-section dresscode-section flow-section reveal-section card-beige" id="dresscode" aria-label="Dresscode">
-        <img src="assets/icons/dresscode.svg" alt="Anillo decorativo" class="section-icon-img dresscode-trigger-icon">
-        <h2 class="section-title" id="dresscodeTitle">Dresscode</h2>
-        <div class="dresscode-detail-shell">
-          <div class="dresscode-intro">
-            <img src="assets/icons/dresscode.svg" alt="" class="dresscode-modal-hero-icon" aria-hidden="true">
-            <p class="dresscode-hero-label">Codigo de vestimenta</p>
-            <p class="dresscode-type" id="dresscodeType"></p>
+          <div class="ceremony-date-row" aria-label="Fecha y hora de la ceremonia">
+            <p class="ceremony-date-side">Sabado</p>
+            <div class="ceremony-day-block">
+              <p class="ceremony-day">27</p>
+              <p class="ceremony-year">2026</p>
+            </div>
+            <p class="ceremony-date-side">16:30 PM</p>
           </div>
 
-          <section class="dresscode-flow-section dresscode-flow-section--palette">
-            <p class="dresscode-palette-title">Colores no permitidos</p>
-            <p class="dresscode-palette-copy">Queremos cuidar la armonia de este dia especial. Te pedimos evitar estos tonos en tu vestimenta.</p>
+          <p class="hero-date-line">Salón Colonial</p>
 
-            <div class="dresscode-bad-colors" aria-label="Colores prohibidos">
-              <article class="dresscode-color-chip dresscode-color-chip--white">
-                <span class="dresscode-color-swatch" aria-hidden="true"></span>
-                <div class="dresscode-color-copy">
-                  <p class="dresscode-color-name">Blanco</p>
-                  <p class="dresscode-color-note">Reservado para la dama</p>
-                </div>
-              </article>
+        </article>
+      </div>
 
-              <article class="dresscode-color-chip dresscode-color-chip--red">
-                <span class="dresscode-color-swatch" aria-hidden="true"></span>
-                <div class="dresscode-color-copy">
-                  <p class="dresscode-color-name">Rojo</p>
-                  <p class="dresscode-color-note">Preferimos mantener esta gama fuera del codigo de vestimenta</p>
-                </div>
-              </article>
+      <div class="wave-frame wave-frame--countdown wave-section--transparent flow-section">
+        <section class="info-section countdown-section flow-section reveal-section card-beige" aria-label="Faltan">
+          <img src="assets/icons/calendario.svg" alt="Anillo decorativo" class="section-icon-img calendar-icon">
+          <h2 class="section-title">Faltan</h2>
+          <div class="countdown" id="countdown" aria-live="polite">
+            <div><span id="days">0</span><small>Dias</small></div>
+            <div><span id="hours">0</span><small>Horas</small></div>
+            <div><span id="minutes">0</span><small>Min</small></div>
+            <div><span id="seconds">0</span><small>Seg</small></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="wave-frame wave-frame--moments wave-section--filled flow-section">
+        <section class="moments-section flow-section reveal-section card-beige" id="nuestros-momentos" aria-label="Nuestros momentos">
+          <span class="camera-icon-wrap" aria-hidden="true">
+            <img src="assets/icons/fotos.svg" alt="" class="section-icon-img camera-icon">
+            <span class="camera-focus-ring"></span>
+            <span class="camera-sheen"></span>
+          </span>
+          <h2 class="section-title" id="momentsTitle">Nuestros Momentos</h2>
+          <p class="moments-subtitle section-subtitle" id="momentsSubtitle"></p>
+
+          <div class="moments-carousel" id="momentsCarousel" aria-roledescription="carousel">
+            <div class="moments-track" id="momentsTrack"></div>
+
+            <button class="moments-arrow moments-prev" id="momentsPrev" type="button" aria-label="Imagen anterior">
+              &#10094;
+            </button>
+            <button class="moments-arrow moments-next" id="momentsNext" type="button" aria-label="Imagen siguiente">
+              &#10095;
+            </button>
+
+            <div class="moments-dots" id="momentsDots" aria-label="Selector de imagen"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="wave-frame wave-frame--venue wave-section--transparent flow-section">
+        <section class="info-section venue-section flow-section reveal-section card-beige" aria-label="Lugar de la ceremonia">
+          <img src="assets/icons/ceremonia.svg" alt="Anillo decorativo" class="section-icon-img">
+          <h2 class="section-title">Lugar de la ceremonia</h2>
+          <p class="location-line">Jardin El cerro, Fraijanes</p>
+          <a class="waze-btn btn-primary" id="venueWazeLink" href="https://waze.com/ul/h9fxdmx9bu" target="_blank" rel="noopener noreferrer" aria-haspopup="dialog" aria-controls="locationModal">
+            Ver ubicacion en Waze
+          </a>
+        </section>
+      </div>
+
+      <div class="wave-frame wave-long-frame wave-long-frame--itinerary wave-section--soft flow-section">
+        <section class="info-section itinerary-section flow-section reveal-section card-beige wave-section--long" id="itinerario" aria-label="Itinerario">
+          <h2 class="section-title" id="itineraryTitle">Itinerario</h2>
+          <div class="itinerary-shell">
+            <ol class="itinerary-list" id="timelineList" aria-label="Cronograma del evento"></ol>
+          </div>
+        </section>
+      </div>
+
+      <div class="wave-frame wave-frame--regalos wave-section--transparent flow-section">
+        <section class="info-section regalos-section flow-section reveal-section card-beige" id="regalos" aria-label="Regalos">
+          <img src="assets/icons/regalo.svg" alt="Anillo decorativo" class="section-icon-img regalos-trigger-icon">
+          <h2 class="section-title" id="regalosTitle">Regalos</h2>
+          <p class="regalos-intro section-text" id="regalosIntro"></p>
+
+          <div class="regalos-card">
+            <img src="assets/icons/regalo2.svg" alt="" class="regalos-modal-hero-icon" aria-hidden="true">
+            <p class="gift-link-description" id="regalosCashText"></p>
+            <button class="action-btn btn-primary regalos-bank-toggle" id="regalosCashLink" type="button" aria-expanded="false" aria-controls="regalosBankPanel">
+              CUENTA BANCARIA
+            </button>
+            <div class="regalos-bank-panel" id="regalosBankPanel" aria-hidden="true">
+              <div class="regalos-bank-panel__content">
+                <p class="regalos-bank-row">
+                  <span class="regalos-bank-label">Nombre:</span>
+                  <span class="regalos-bank-value" id="regalosBankName">Nombre de la cuenta bancaria</span>
+                </p>
+                <p class="regalos-bank-row">
+                  <span class="regalos-bank-label">No. de cuenta monetaria:</span>
+                  <span class="regalos-bank-value regalos-bank-value--number" id="regalosBankNumber">0000 0000 0000 0000</span>
+                </p>
+              </div>
+            </div>
+            <p class="regalos-note" id="regalosNote"></p>
+          </div>
+        </section>
+      </div>
+
+      <div class="wave-frame wave-frame--dresscode wave-section--filled flow-section">
+        <section class="info-section dresscode-section flow-section reveal-section card-beige" id="dresscode" aria-label="Dresscode">
+          <img src="assets/icons/dresscode.svg" alt="Anillo decorativo" class="section-icon-img dresscode-trigger-icon">
+          <h2 class="section-title" id="dresscodeTitle">Dresscode</h2>
+          <div class="dresscode-detail-shell">
+            <div class="dresscode-intro">
+              <img src="assets/icons/dresscode.svg" alt="" class="dresscode-modal-hero-icon" aria-hidden="true">
+              <p class="dresscode-hero-label">Codigo de vestimenta</p>
+              <p class="dresscode-type" id="dresscodeType"></p>
             </div>
 
-          </section>
-        </div>
-      </section>
+            <section class="dresscode-flow-section dresscode-flow-section--palette">
+              <p class="dresscode-palette-title">Colores no permitidos</p>
+              <p class="dresscode-palette-copy">Queremos cuidar la armonia de este dia especial. Te pedimos evitar estos tonos en tu vestimenta.</p>
 
-      <section class="info-section regalos-section flow-section reveal-section card-beige" id="regalos" aria-label="Regalos">
-        <img src="assets/icons/regalo.gif" alt="Anillo decorativo" class="section-icon-img regalos-trigger-icon">
-        <h2 class="section-title" id="regalosTitle">Regalos</h2>
-        <p class="regalos-intro section-text" id="regalosIntro"></p>
+              <div class="dresscode-bad-colors" aria-label="Colores prohibidos">
+                <article class="dresscode-color-chip dresscode-color-chip--white">
+                  <span class="dresscode-color-swatch" aria-hidden="true"></span>
+                  <div class="dresscode-color-copy">
+                    <p class="dresscode-color-name">Blanco</p>
+                    <p class="dresscode-color-note">Reservado para la novia</p>
+                  </div>
+                </article>
 
-        <div class="regalos-card">
-          <img src="assets/icons/regalo.gif" alt="" class="regalos-modal-hero-icon" aria-hidden="true">
-          <p class="gift-link-description" id="regalosCashText"></p>
-          <button class="action-btn btn-primary regalos-bank-toggle" id="regalosCashLink" type="button" aria-expanded="false" aria-controls="regalosBankPanel">
-            CUENTA BANCARIA
-          </button>
-          <div class="regalos-bank-panel" id="regalosBankPanel" aria-hidden="true">
-            <div class="regalos-bank-panel__content">
-              <p class="regalos-bank-row">
-                <span class="regalos-bank-label">Nombre:</span>
-                <span class="regalos-bank-value" id="regalosBankName">Nombre de la cuenta bancaria</span>
-              </p>
-              <p class="regalos-bank-row">
-                <span class="regalos-bank-label">No. de cuenta monetaria:</span>
-                <span class="regalos-bank-value regalos-bank-value--number" id="regalosBankNumber">0000 0000 0000 0000</span>
-              </p>
-            </div>
+                <article class="dresscode-color-chip dresscode-color-chip--red">
+                  <span class="dresscode-color-swatch" aria-hidden="true"></span>
+                  <div class="dresscode-color-copy">
+                    <p class="dresscode-color-name">Rojo</p>
+                    <p class="dresscode-color-note">Preferimos mantener esta gama fuera del codigo de vestimenta</p>
+                  </div>
+                </article>
+              </div>
+
+            </section>
           </div>
-          <p class="regalos-note" id="regalosNote"></p>
-        </div>
-      </section>
+        </section>
+      </div>
 
-      <section class="rsvp-section flow-section reveal-section card-beige" id="rsvpSection" aria-label="Confirmacion de asistencia">
-        <img src="assets/icons/confirmacion.gif" alt="Anillo decorativo" class="section-icon-img">
-        <h2 class="section-title">Confirmacion de asistencia</h2>
-        <p class="rsvp-greeting section-text" id="rsvpGreeting">Hola</p>
-        <p class="rsvp-cupos section-text" id="rsvpCupos">Cupos asignados: -</p>
+      <div class="wave-frame wave-frame--parking wave-section--transparent flow-section">
+        <section class="parking-section flow-section reveal-section" aria-label="Informacion de parqueo">
+          <p class="parking-section__text">El día del evento habrá parqueo con un costo de Q25.</p>
+        </section>
+      </div>
 
-        <div id="rsvpFormContainer">
-          <form class="rsvp-form" id="rsvpForm" novalidate>
-            <label for="respuesta">Respuesta</label>
-            <select id="respuesta" name="respuesta" required>
-              <option value="CONFIRMA">Confirmo</option>
-              <option value="NO_ASISTE">No podre asistir</option>
-            </select>
+      <div class="wave-frame wave-long-frame wave-long-frame--rsvp wave-section--soft flow-section">
+        <section class="rsvp-section flow-section reveal-section card-beige wave-section--long" id="rsvpSection" aria-label="Confirmacion de asistencia">
+          <img src="assets/icons/confirmacion.svg" alt="Anillo decorativo" class="section-icon-img">
+          <h2 class="section-title">Confirmacion de asistencia</h2>
+          <div class="rsvp-guest-search">
+            <label for="guestSearchInput">Busca tu nombre</label>
+            <input id="guestSearchInput" name="guestSearchInput" type="text" autocomplete="off" placeholder="Escribe tu nombre">
+            <div class="rsvp-search-results" id="guestSearchResults" role="listbox" aria-label="Resultados de invitados"></div>
+          </div>
+          <p class="rsvp-greeting section-text" id="rsvpGreeting">Hola</p>
+          <p class="rsvp-cupos section-text" id="rsvpCupos">Cupos asignados: -</p>
 
-            <label for="cuposConfirmados">Cantidad de cupos a confirmar</label>
-            <select id="cuposConfirmados" name="cuposConfirmados" class="rsvp-cupos-confirmados" required>
-              <option value="">Selecciona una cantidad</option>
-            </select>
+          <div id="rsvpFormContainer">
+            <form class="rsvp-form" id="rsvpForm" novalidate>
+              <label for="respuesta">Respuesta</label>
+              <select id="respuesta" name="respuesta" required>
+                <option value="CONFIRMA">Confirmo</option>
+                <option value="NO_ASISTE">No podre asistir</option>
+              </select>
 
-            <label for="telefono">Telefono</label>
-            <input id="telefono" name="telefono" type="tel" placeholder="Ej: +50370000000" required>
+              <label for="telefono">Telefono</label>
+              <input id="telefono" name="telefono" type="tel" placeholder="Ej: +50370000000" required>
 
-            <label for="mensaje">Mensaje (opcional)</label>
-            <textarea id="mensaje" name="mensaje" rows="3" placeholder="Te esperamos con mucho carino"></textarea>
+              <label for="correo">Correo electronico</label>
+              <input id="correo" name="correo" type="email" placeholder="Ej: correo@dominio.com" required>
 
-            <button class="btn-primary" id="rsvpSubmit" type="submit">Enviar confirmacion</button>
-          </form>
-        </div>
+              <label for="mensaje">Mensaje (opcional)</label>
+              <textarea id="mensaje" name="mensaje" rows="3" placeholder="Te esperamos con mucho carino"></textarea>
 
-        <div class="rsvp-post" id="rsvpThankYou" hidden>
-          <div class="rsvp-post-icon" id="rsvpPostIcon" aria-hidden="true"></div>
-          <p class="rsvp-post-title" id="rsvpPostTitle"></p>
-          <p class="rsvp-post-message" id="rsvpPostMessage"></p>
-          <p class="rsvp-post-closing">
-            <span id="rsvpPostClosing"></span>
-            <span class="rsvp-post-underline" id="rsvpPostUnderline" aria-hidden="true"></span>
-          </p>
-          <div class="rsvp-post-particles" id="rsvpPostParticles" aria-hidden="true"></div>
-        </div>
+              <button class="btn-primary" id="rsvpSubmit" type="submit">Enviar confirmacion</button>
+            </form>
+          </div>
 
-        <p class="rsvp-status" id="rsvpStatus" aria-live="polite"></p>
-      </section>
+          <div class="rsvp-post" id="rsvpThankYou" hidden>
+            <div class="rsvp-post-icon" id="rsvpPostIcon" aria-hidden="true"></div>
+            <p class="rsvp-post-title" id="rsvpPostTitle"></p>
+            <p class="rsvp-post-message" id="rsvpPostMessage"></p>
+            <p class="rsvp-post-closing">
+              <span id="rsvpPostClosing"></span>
+              <span class="rsvp-post-underline" id="rsvpPostUnderline" aria-hidden="true"></span>
+            </p>
+            <div class="rsvp-post-particles" id="rsvpPostParticles" aria-hidden="true"></div>
+          </div>
+
+          <p class="rsvp-status" id="rsvpStatus" aria-live="polite"></p>
+        </section>
+      </div>
     </section>
   </main>
+
+  <div class="location-modal" id="locationModal" hidden aria-hidden="true">
+    <div class="location-modal__overlay" data-location-modal-close></div>
+    <div class="location-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle">
+      <div class="location-modal__header">
+        <h3 class="location-modal__title" id="locationModalTitle">Lugar de la ceremonia</h3>
+        <button class="location-modal__close" id="locationModalClose" type="button" aria-label="Cerrar ubicacion">
+          ×
+        </button>
+      </div>
+      <a class="location-modal__map" id="locationModalMapLink" href="https://waze.com/ul/h9fxdmx9bu" target="_blank" rel="noopener noreferrer" aria-label="Abrir ubicacion en Waze">
+        <iframe
+          class="location-modal__iframe"
+          title="Vista previa de Jardin El cerro, Fraijanes"
+          src="https://maps.google.com/maps?q=Jardin%20El%20cerro%20Fraijanes%20Guatemala&output=embed"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        <span class="location-modal__map-overlay" aria-hidden="true"></span>
+      </a>
+      <div class="location-modal__footer">
+        <p class="location-modal__place">Jardin El cerro, Fraijanes</p>
+        <a class="location-modal__waze-btn" id="locationModalWazeLink" href="https://waze.com/ul/h9fxdmx9bu" target="_blank" rel="noopener noreferrer">
+          Abrir en Waze
+        </a>
+      </div>
+    </div>
+  </div>
 
   <div class="section-modal" id="sectionModal" hidden aria-hidden="true">
     <div class="section-modal__overlay" data-modal-close></div>
@@ -256,7 +310,6 @@
   </div>
 
   <audio id="bgMusic" loop preload="none">
-    <!-- Cambiar aqui la cancion del reproductor -->
     <source src="./assets/audio/Turning Page (Instrumental).mp3" type="audio/mpeg">
   </audio>
 

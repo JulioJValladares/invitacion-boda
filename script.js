@@ -17,9 +17,11 @@ const rsvpCupos = document.getElementById("rsvpCupos");
 const rsvpStatus = document.getElementById("rsvpStatus");
 const rsvpSubmit = document.getElementById("rsvpSubmit");
 const rsvpFormContainer = document.getElementById("rsvpFormContainer");
+const guestSearchInput = document.getElementById("guestSearchInput");
+const guestSearchResults = document.getElementById("guestSearchResults");
 const respuestaField = document.getElementById("respuesta");
-const cuposConfirmadosField = document.getElementById("cuposConfirmados");
 const telefonoField = document.getElementById("telefono");
+const correoField = document.getElementById("correo");
 const mensajeField = document.getElementById("mensaje");
 const rsvpThankYou = document.getElementById("rsvpThankYou");
 const rsvpPostIcon = document.getElementById("rsvpPostIcon");
@@ -54,6 +56,11 @@ const regalosBankPanelEl = document.getElementById("regalosBankPanel");
 const regalosBankNameEl = document.getElementById("regalosBankName");
 const regalosBankNumberEl = document.getElementById("regalosBankNumber");
 const regalosNoteEl = document.getElementById("regalosNote");
+const venueWazeLinkEl = document.getElementById("venueWazeLink");
+const locationModalEl = document.getElementById("locationModal");
+const locationModalCloseBtn = document.getElementById("locationModalClose");
+const locationModalMapLinkEl = document.getElementById("locationModalMapLink");
+const locationModalWazeLinkEl = document.getElementById("locationModalWazeLink");
 const sectionModalEl = document.getElementById("sectionModal");
 const sectionModalBodyEl = document.getElementById("sectionModalBody");
 const sectionModalTitleEl = document.getElementById("sectionModalTitle");
@@ -66,21 +73,27 @@ const bgLayerEl = document.getElementById("bg-layer");
 const bgGradientEl = document.getElementById("bg-gradient");
 const bgOverlayEl = document.getElementById("bg-overlay");
 
+// Configuracion global editable.
 const PLAYER_STATE_KEY = "wedding_music_state_v1";
 const DEFAULT_VOLUME = 0.5;
 const RSVP_API_URL = "https://script.google.com/macros/s/AKfycbzemF74qu_QD0OPHsfeVT4lD6GCxiwSecDuBuCByJ2J4OROtTTVkhAvFlbZ0I4KIV5A/exec";
 const RSVP_LOCAL_KEY_PREFIX = "wedding_rsvp_state_v1_";
 const FINAL_RSVP_STATES = new Set(["CONFIRMADO", "NO_ASISTE"]);
+const GUEST_SEARCH_MIN_LENGTH = 2;
+const GUEST_SEARCH_DEBOUNCE_MS = 300;
 const GSAP_INSTANCE = window.gsap;
 const REDUCED_MOTION_QUERY = window.matchMedia("(prefers-reduced-motion: reduce)");
 let noteAnimationTween = null;
 let musicNotesTimer = null;
-let shouldAutoResumeOnEnvelopeOpen = true;
 let currentGuestName = "";
 let currentGuestCupos = null;
+let currentGuestId = "";
+let searchDebounceTimer = null;
+let guestSearchRequestId = 0;
 // Bloqueo de doble click durante la animacion del sobre.
 let isEnvelopeAnimating = false;
 let regalosCopyStatusTimer = null;
+let lastVolumeBeforeMute = DEFAULT_VOLUME;
 // Ajustar aqui la frecuencia de particulas (en ms, rango min/max).
 const FRECUENCIA_PARTICULAS = { min: 300, max: 600 };
 // Ajustar aqui el tamano base de particulas.
@@ -99,11 +112,11 @@ const RSVP_POST_CONFIG = {
   messages: {
     CONFIRMADO: {
       title: "Gracias {nombre}",
-      body: "Nos llena de alegria saber que nos acompanaras en nuestro gran dia."
+      body: "Nos llena de alegría saber que nos acompañaras en nuestro gran día."
     },
     NO_ASISTE: {
       title: "Gracias {nombre} por avisarnos.",
-      body: "Te vamos a extranar ese dia, pero sabemos que nos acompanas de corazon."
+      body: "Te vamos a extrañar ese día, pero sabemos que nos acompañas de corazón."
     }
   },
   icons: {
@@ -160,12 +173,12 @@ const INVITATION_INFO_CONFIG = {
     // Editar aqui la lista de eventos del itinerario (agregar, eliminar o reordenar).
     // Cada evento usa una tarjeta principal y una ilustracion decorativa alineada.
     events: [
-      { time: "16:00 PM", title: "Llegada de invitados", location: "Deck Caelo", artSrc: "assets/icons/llegada.svg", artAlt: "Ilustracion fotografica" },
-      { time: "16:30 PM", title: "Ceremonia", location: "Deck Caelo", artSrc: "assets/icons/ceremonia.svg", artAlt: "Ilustracion de ceremonia" },
+      { time: "16:30 PM", title: "Llegada de invitados", location: "Deck Caelo", artSrc: "assets/icons/llegada.svg", artAlt: "Ilustracion fotografica" },
+      { time: "17:00 PM", title: "Ceremonia", location: "Deck Caelo", artSrc: "assets/icons/ceremonia2.svg", artAlt: "Ilustracion de ceremonia" },
       { time: "18:00 PM", title: "Sesion de Recuerdos", location: "Corredor de Jardin", artSrc: "assets/icons/sesion.svg", artAlt: "Ilustracion de sesion de recuerdos" },
-      { time: "19:00 PM", title: "Recepcion", location: "Salon Colonial", artSrc: "assets/icons/recepcion.svg", artAlt: "Ilustracion fotografica" },
-      { time: "19:30 PM", title: "Primer Baile", location: "Salon Colonial", artSrc: "assets/icons/baile.svg", artAlt: "Ilustracion de baile" },
-      { time: "20:00 PM", title: "Cena", location: "Salon Colonial", artSrc: "assets/icons/cena.svg", artAlt: "Ilustracion de cena" }
+      { time: "19:00 PM", title: "Recepción", location: "Salon Colonial", artSrc: "assets/icons/recepcion.svg", artAlt: "Ilustracion fotografica" },
+      { time: "19:30 PM", title: "Cena", location: "Salon Colonial", artSrc: "assets/icons/cena.svg", artAlt: "Ilustracion de cena" },
+      { time: "20:30 PM", title: "Primer Baile", location: "Salon Colonial", artSrc: "assets/icons/baile.svg", artAlt: "Ilustracion de baile" }
     ]
   },
   dresscode: {
@@ -178,7 +191,7 @@ const INVITATION_INFO_CONFIG = {
   },
   regalos: {
     title: "Regalos",
-    intro: "Si deseas obsequiarnos algo, puedes hacerlo efectivo o por medio de transferencia",
+    intro: "El mejor regalo es compartir contigo, pero si deseas darnos un detalle, agradeceremos que sea en efectivo o transferencia",
     // Cambiar aqui el texto principal de regalo en efectivo.
     cashText: "",
     // Cambiar aqui el texto del boton.
@@ -188,7 +201,7 @@ const INVITATION_INFO_CONFIG = {
     // Cambiar aqui el numero de cuenta bancaria.
     bankAccountNumber: "0800062317",
     // Cambiar aqui la nota de mesa fisica en el evento.
-    note: "Habran sobres disponibles el dia del evento para quienes prefieran entregar su regalo en efectivo."
+    note: "Habran sobres disponibles el día del evento para quienes prefieran entregar su regalo en efectivo."
   }
 };
 
@@ -215,6 +228,7 @@ const SECTION_MODAL_CONFIG = [
   }
 ];
 
+// Modales de detalle de secciones.
 function initializeSectionDetailModals() {
   if (!sectionModalEl || !sectionModalBodyEl || !sectionModalTitleEl) return;
 
@@ -479,39 +493,149 @@ function initializeSectionDetailModals() {
   if (!modalEntries.length) return;
 }
 
+// Modal de ubicacion.
+function initializeLocationModal() {
+  if (!venueWazeLinkEl || !locationModalEl || !locationModalCloseBtn || !locationModalMapLinkEl || !locationModalWazeLinkEl) return;
+
+  const wazeUrl = venueWazeLinkEl.getAttribute("href") || "";
+  let restoreFocusEl = null;
+  let previousBodyOverflow = "";
+
+  locationModalMapLinkEl.href = wazeUrl;
+  locationModalWazeLinkEl.href = wazeUrl;
+
+  const openLocationModal = (event) => {
+    event?.preventDefault();
+    restoreFocusEl = event?.currentTarget instanceof HTMLElement ? event.currentTarget : document.activeElement;
+    previousBodyOverflow = document.body.style.overflow;
+    locationModalEl.hidden = false;
+    locationModalEl.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+
+    if (GSAP_INSTANCE && !REDUCED_MOTION_QUERY.matches) {
+      const overlayEl = locationModalEl.querySelector(".location-modal__overlay");
+      const dialogEl = locationModalEl.querySelector(".location-modal__dialog");
+      GSAP_INSTANCE.set([overlayEl, dialogEl], { autoAlpha: 0 });
+      GSAP_INSTANCE.set(dialogEl, { y: 18, scale: 0.97 });
+      GSAP_INSTANCE.to(overlayEl, { autoAlpha: 1, duration: 0.22, ease: "power2.out" });
+      GSAP_INSTANCE.to(dialogEl, { autoAlpha: 1, y: 0, scale: 1, duration: 0.3, ease: "power2.out" });
+    }
+
+    locationModalCloseBtn.focus?.();
+  };
+
+  const closeLocationModal = () => {
+    if (locationModalEl.hidden) return;
+
+    const finishClose = () => {
+      locationModalEl.hidden = true;
+      locationModalEl.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = previousBodyOverflow;
+      restoreFocusEl?.focus?.();
+      restoreFocusEl = null;
+    };
+
+    if (GSAP_INSTANCE && !REDUCED_MOTION_QUERY.matches) {
+      const overlayEl = locationModalEl.querySelector(".location-modal__overlay");
+      const dialogEl = locationModalEl.querySelector(".location-modal__dialog");
+      GSAP_INSTANCE.to(dialogEl, { autoAlpha: 0, y: 12, scale: 0.98, duration: 0.2, ease: "power2.inOut" });
+      GSAP_INSTANCE.to(overlayEl, { autoAlpha: 0, duration: 0.18, ease: "power2.out", onComplete: finishClose });
+      return;
+    }
+
+    finishClose();
+  };
+
+  venueWazeLinkEl.addEventListener("click", openLocationModal);
+  locationModalCloseBtn.addEventListener("click", closeLocationModal);
+  locationModalEl.addEventListener("click", (event) => {
+    const target = event.target;
+    if (target instanceof Element && target.matches("[data-location-modal-close]")) {
+      closeLocationModal();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !locationModalEl.hidden) {
+      closeLocationModal();
+    }
+  });
+}
+
+// Animaciones de entrada.
 function initializeSectionRevealAnimations() {
   const sections = Array.from(document.querySelectorAll(".reveal-section"));
   if (!sections.length) return;
 
-  if (!GSAP_INSTANCE || REDUCED_MOTION_QUERY.matches || !("IntersectionObserver" in window)) {
-    sections.forEach((section) => {
-      section.style.opacity = "";
-      section.style.transform = "";
+  const revealPlan = [
+    [".reveal-section", "reveal-up"],
+    [".section-icon-img, .camera-icon-wrap", "reveal-scale"],
+    [".kicker, .hero-names, .section-title", "reveal-up reveal-title"],
+    [".hero-quote, .section-subtitle, .section-text, .section-summary, .ceremony-month, .ceremony-date-row, .hero-date-line, .location-line, .parking-section__text", "reveal-up"],
+    [".countdown > div", "reveal-scale"],
+    [".moments-carousel, .dresscode-detail-shell, .regalos-card, .rsvp-guest-search, #rsvpFormContainer, .rsvp-post", "reveal-up"],
+    [".itinerary-row--left .itinerary-card, .itinerary-row--right .itinerary-art", "reveal-left"],
+    [".itinerary-row--right .itinerary-card, .itinerary-row--left .itinerary-art", "reveal-right"],
+    [".dresscode-color-chip, .regalos-bank-panel__content, .rsvp-search-results", "reveal-scale"],
+    [".btn-primary, .btn-secondary, .action-btn, .section-details-btn, .waze-btn", "reveal-up"],
+    [".rsvp-form > *", "reveal-up"]
+  ];
+
+  const revealItems = [];
+  const addRevealItem = (element, variantClasses) => {
+    if (!(element instanceof Element)) return;
+    element.classList.add("reveal", ...variantClasses.split(" ").filter(Boolean));
+    revealItems.push(element);
+  };
+
+  revealPlan.forEach(([selector, variantClasses]) => {
+    document.querySelectorAll(selector).forEach((element) => addRevealItem(element, variantClasses));
+  });
+
+  const staggerGroups = [
+    [".hero-section", ".kicker, .hero-names, .hero-quote"],
+    [".hero-date-section", ".section-icon-img, .ceremony-title, .ceremony-month, .ceremony-date-row, .hero-date-line"],
+    [".countdown-section", ".section-icon-img, .section-title, .countdown > div"],
+    [".moments-section", ".camera-icon-wrap, .section-title, .section-subtitle, .moments-carousel"],
+    [".venue-section", ".section-icon-img, .section-title, .location-line, .waze-btn"],
+    [".regalos-section", ".section-icon-img, .section-title, .section-summary, .section-details-btn"],
+    [".dresscode-section", ".section-icon-img, .section-title, .section-summary, .section-details-btn"],
+    [".rsvp-section", ".section-icon-img, .section-title, .rsvp-guest-search, .section-text, #rsvpFormContainer, .rsvp-form > *"]
+  ];
+
+  staggerGroups.forEach(([scopeSelector, itemSelector]) => {
+    document.querySelectorAll(scopeSelector).forEach((scope) => {
+      scope.querySelectorAll(itemSelector).forEach((element, index) => {
+        element.style.setProperty("--reveal-delay", `${Math.min(index * 110, 660)}ms`);
+      });
     });
+  });
+
+  document.querySelectorAll(".itinerary-row").forEach((row, rowIndex) => {
+    row.querySelectorAll(".itinerary-card, .itinerary-art").forEach((element, itemIndex) => {
+      element.style.setProperty("--reveal-delay", `${Math.min((rowIndex * 80) + (itemIndex * 90), 720)}ms`);
+    });
+  });
+
+  if (REDUCED_MOTION_QUERY.matches || !("IntersectionObserver" in window)) {
+    revealItems.forEach((element) => element.classList.add("reveal-visible"));
     return;
   }
-
-  GSAP_INSTANCE.set(sections, { autoAlpha: 0, y: 22 });
 
   const observer = new IntersectionObserver(
     (entries, currentObserver) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        GSAP_INSTANCE.to(entry.target, {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.52,
-          ease: "power2.out"
-        });
+        entry.target.classList.add("reveal-visible");
         currentObserver.unobserve(entry.target);
       });
     },
-    { threshold: 0.18, rootMargin: "0px 0px -10% 0px" }
+    { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
   );
 
-  sections.forEach((section) => observer.observe(section));
+  Array.from(new Set(revealItems)).forEach((element) => observer.observe(element));
 }
 
+// Carrusel y lightbox de momentos.
 function initializeMomentsCarousel(momentsConfig) {
   if (!momentsTrackEl || !momentsDotsEl || !momentsCarouselEl) return;
 
@@ -938,6 +1062,7 @@ function initializeMomentsCarousel(momentsConfig) {
   }
 }
 
+// Render de secciones configurables.
 function createItineraryCard(eventInfo) {
   const card = document.createElement("article");
   card.className = "itinerary-card";
@@ -1048,11 +1173,27 @@ function renderRegalosSection(regalos) {
   setRegalosCopyStatus("");
 }
 
+// Efectos visuales y reproductor de musica.
 function initializeCameraIconAnimation() {
   const cameraIconEl = document.querySelector(".camera-icon");
   const cameraFocusRingEl = document.querySelector(".camera-focus-ring");
   const cameraSheenEl = document.querySelector(".camera-sheen");
-  if (!cameraIconEl || !cameraFocusRingEl || !cameraSheenEl || !GSAP_INSTANCE) return;
+  const animatedIconEls = [
+    ".hero-date-section > .section-icon-img",
+    ".countdown-section > .section-icon-img",
+    ".venue-section > .section-icon-img",
+    ".regalos-section > .section-icon-img",
+    ".dresscode-section > .section-icon-img",
+    "#rsvpSection > .section-icon-img",
+    ".camera-icon"
+  ]
+    .map((selector) => document.querySelector(selector))
+    .filter(Boolean);
+
+  if (!animatedIconEls.length || !cameraFocusRingEl || !cameraSheenEl || !GSAP_INSTANCE) return;
+
+  const animatedIconTargets = Array.from(new Set(animatedIconEls));
+  const cameraEffectsReady = Boolean(cameraIconEl && cameraFocusRingEl && cameraSheenEl);
 
   let nextShotCall = null;
   let activeShotTween = null;
@@ -1066,10 +1207,12 @@ function initializeCameraIconAnimation() {
       activeShotTween.kill();
       activeShotTween = null;
     }
-    GSAP_INSTANCE.killTweensOf([cameraIconEl, cameraFocusRingEl, cameraSheenEl]);
-    GSAP_INSTANCE.set(cameraIconEl, { scale: 1 });
-    GSAP_INSTANCE.set(cameraFocusRingEl, { autoAlpha: 0, scale: 0.85 });
-    GSAP_INSTANCE.set(cameraSheenEl, { autoAlpha: 0, xPercent: -120 });
+    GSAP_INSTANCE.killTweensOf([...animatedIconTargets, cameraFocusRingEl, cameraSheenEl]);
+    GSAP_INSTANCE.set(animatedIconTargets, { scale: 1, transformOrigin: "50% 50%" });
+    if (cameraEffectsReady) {
+      GSAP_INSTANCE.set(cameraFocusRingEl, { autoAlpha: 0, scale: 0.85 });
+      GSAP_INSTANCE.set(cameraSheenEl, { autoAlpha: 0, xPercent: -120 });
+    }
   };
 
   const scheduleNextShot = () => {
@@ -1088,22 +1231,26 @@ function initializeCameraIconAnimation() {
     });
 
     activeShotTween
-      .to(cameraIconEl, { scale: 1.03, duration: 0.22, ease: "power2.out" }, 0)
-      .to(cameraIconEl, { scale: 1, duration: 0.23, ease: "power2.out" }, 0.22)
-      .fromTo(
-        cameraFocusRingEl,
-        { autoAlpha: 0, scale: 0.85 },
-        { autoAlpha: 0.25, scale: 1.15, duration: 0.7, ease: "power2.out" },
-        0.02
-      )
-      .to(cameraFocusRingEl, { autoAlpha: 0, duration: 0.22, ease: "power2.in" }, 0.5)
-      .fromTo(
-        cameraSheenEl,
-        { autoAlpha: 0, xPercent: -120 },
-        { autoAlpha: 0.14, xPercent: 120, duration: 0.6, ease: "power2.out" },
-        0.04
-      )
-      .to(cameraSheenEl, { autoAlpha: 0, duration: 0.14, ease: "power2.in" }, 0.5);
+      .to(animatedIconTargets, { scale: 1.03, duration: 0.22, ease: "power2.out" }, 0)
+      .to(animatedIconTargets, { scale: 1, duration: 0.23, ease: "power2.out" }, 0.22);
+
+    if (cameraEffectsReady) {
+      activeShotTween
+        .fromTo(
+          cameraFocusRingEl,
+          { autoAlpha: 0, scale: 0.85 },
+          { autoAlpha: 0.25, scale: 1.15, duration: 0.7, ease: "power2.out" },
+          0.02
+        )
+        .to(cameraFocusRingEl, { autoAlpha: 0, duration: 0.22, ease: "power2.in" }, 0.5)
+        .fromTo(
+          cameraSheenEl,
+          { autoAlpha: 0, xPercent: -120 },
+          { autoAlpha: 0.14, xPercent: 120, duration: 0.6, ease: "power2.out" },
+          0.04
+        )
+        .to(cameraSheenEl, { autoAlpha: 0, duration: 0.14, ease: "power2.in" }, 0.5);
+    }
   };
 
   const syncWithMotionPreference = () => {
@@ -1174,7 +1321,7 @@ function spawnMusicNote() {
 
   const note = document.createElement("span");
   note.className = "music-note";
-  note.innerHTML = "&#9835;";
+  note.textContent = "♫";
   note.style.fontSize = `${TAMANIO_PARTICULAS}px`;
   musicNotesLayer.appendChild(note);
 
@@ -1212,6 +1359,8 @@ function spawnMusicNote() {
 }
 
 function startMusicNotesIfNeeded() {
+  if (!bgMusic) return;
+
   const shouldRun = !bgMusic.paused && !REDUCED_MOTION_QUERY.matches && Boolean(GSAP_INSTANCE);
   if (!shouldRun) {
     stopMusicNotes();
@@ -1235,7 +1384,7 @@ function startMusicNotesIfNeeded() {
 }
 
 function syncVinylAnimation() {
-  if (!musicToggle || !musicNoteIcon) return;
+  if (!musicToggle || !musicNoteIcon || !bgMusic) return;
 
   if (!GSAP_INSTANCE || REDUCED_MOTION_QUERY.matches) {
     if (noteAnimationTween) {
@@ -1269,72 +1418,12 @@ function syncVinylAnimation() {
 function initializeBackgroundEffects() {
   if (!bgLayerEl || !bgGradientEl || !bgOverlayEl) return;
 
-  const MAX_PARALLAX_PX = 40;
-  const MAX_BLUR_PX = 6;
-  let latestScrollY = window.scrollY || window.pageYOffset || 0;
-  let maxScrollY = 1;
-  let rafId = null;
-
-  function clamp01(value) {
-    return Math.min(1, Math.max(0, value));
-  }
-
-  function recalcMaxScroll() {
-    maxScrollY = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-  }
-
-  function applyFrame() {
-    rafId = null;
-
-    if (REDUCED_MOTION_QUERY.matches) {
-      bgLayerEl.style.transform = "translate3d(0, 0, 0)";
-      bgLayerEl.style.filter = "blur(0px)";
-      bgGradientEl.style.transform = "translate3d(0, 0, 0)";
-      bgGradientEl.style.opacity = "0.56";
-      bgOverlayEl.style.opacity = "0.24";
-      return;
-    }
-
-    const progress = clamp01(latestScrollY / maxScrollY);
-    const parallaxY = progress * MAX_PARALLAX_PX;
-    const blurPx = progress * MAX_BLUR_PX;
-    const gradientShiftY = progress * 18;
-    const gradientOpacity = 0.5 + (progress * 0.18);
-    const overlayOpacity = 0.2 + (progress * 0.1);
-
-    bgLayerEl.style.transform = `translate3d(0, ${parallaxY.toFixed(2)}px, 0)`;
-    bgLayerEl.style.filter = `blur(${blurPx.toFixed(2)}px)`;
-    bgGradientEl.style.transform = `translate3d(0, ${gradientShiftY.toFixed(2)}px, 0)`;
-    bgGradientEl.style.opacity = gradientOpacity.toFixed(3);
-    bgOverlayEl.style.opacity = overlayOpacity.toFixed(3);
-  }
-
-  function queueFrame() {
-    if (rafId !== null) return;
-    rafId = window.requestAnimationFrame(applyFrame);
-  }
-
-  function onScroll() {
-    latestScrollY = window.scrollY || window.pageYOffset || 0;
-    queueFrame();
-  }
-
-  function onResize() {
-    recalcMaxScroll();
-    queueFrame();
-  }
-
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", onResize, { passive: true });
-
-  if (typeof REDUCED_MOTION_QUERY.addEventListener === "function") {
-    REDUCED_MOTION_QUERY.addEventListener("change", onResize);
-  } else if (typeof REDUCED_MOTION_QUERY.addListener === "function") {
-    REDUCED_MOTION_QUERY.addListener(onResize);
-  }
-
-  recalcMaxScroll();
-  queueFrame();
+  bgLayerEl.style.transform = "translate3d(0, 0, 0)";
+  bgLayerEl.style.filter = "none";
+  bgGradientEl.style.transform = "translate3d(0, 0, 0)";
+  bgGradientEl.style.opacity = "0.12";
+  bgOverlayEl.style.background = "transparent";
+  bgOverlayEl.style.opacity = "0";
 }
 
 function initializeItineraryScrollProgress() {
@@ -1566,6 +1655,8 @@ function loadPlayerState() {
 }
 
 function savePlayerState() {
+  if (!bgMusic) return;
+
   try {
     localStorage.setItem(
       PLAYER_STATE_KEY,
@@ -1582,6 +1673,8 @@ function savePlayerState() {
 }
 
 async function safePlayMusic() {
+  if (!bgMusic) return;
+
   try {
     await bgMusic.play();
   } catch {
@@ -1593,6 +1686,8 @@ async function safePlayMusic() {
 }
 
 function updatePlayerUI() {
+  if (!bgMusic || !musicToggle || !muteToggle || !volumeSlider) return;
+
   musicToggle.classList.toggle("is-playing", !bgMusic.paused);
   musicToggle.classList.toggle("is-paused", bgMusic.paused);
   musicToggle.classList.toggle("is-muted", bgMusic.muted);
@@ -1605,7 +1700,7 @@ function updatePlayerUI() {
 }
 
 function startEnvelopeOpeningSequence() {
-  if (!envelope || isEnvelopeAnimating) return;
+  if (!envelope || !invitation || isEnvelopeAnimating) return;
   if (envelope.classList.contains("is-open")) return;
   isEnvelopeAnimating = true;
   envelope.classList.add("is-open");
@@ -1616,7 +1711,7 @@ function startEnvelopeOpeningSequence() {
   invitation.hidden = false;
 
   // Inicio de musica: mismo click que abre el sobre.
-  if (bgMusic.paused) {
+  if (bgMusic?.paused) {
     safePlayMusic();
   }
 
@@ -1636,100 +1731,106 @@ function startEnvelopeOpeningSequence() {
   }, 2500);
 }
 
-const initialState = loadPlayerState();
-let lastVolumeBeforeMute = initialState.lastVolume > 0 ? initialState.lastVolume : DEFAULT_VOLUME;
-shouldAutoResumeOnEnvelopeOpen = !initialState.isPaused;
+function initializeEnvelopeOpening() {
+  if (!envelope) return;
 
-bgMusic.volume = initialState.volume;
-bgMusic.muted = initialState.isMuted;
-volumeSlider.value = String(Math.round(initialState.volume * 100));
-updatePlayerUI();
+  envelope.addEventListener("click", (event) => {
+    event.preventDefault();
+    startEnvelopeOpeningSequence();
+  });
+}
 
-envelope.addEventListener("click", (event) => {
-  event.preventDefault();
-  startEnvelopeOpeningSequence();
-});
+function initializeMusicPlayer() {
+  if (!bgMusic || !musicToggle || !muteToggle || !volumeSlider) return;
 
-musicToggle.addEventListener("click", () => {
-  const isOpen = !musicPanel?.hidden;
-  setMusicPanelOpen(!isOpen);
-});
+  const initialState = loadPlayerState();
+  lastVolumeBeforeMute = initialState.lastVolume > 0 ? initialState.lastVolume : DEFAULT_VOLUME;
 
-playPauseToggle?.addEventListener("click", () => {
-  if (bgMusic.paused) {
-    safePlayMusic();
-  } else {
-    bgMusic.pause();
+  bgMusic.volume = initialState.volume;
+  bgMusic.muted = initialState.isMuted;
+  volumeSlider.value = String(Math.round(initialState.volume * 100));
+  updatePlayerUI();
+
+  musicToggle.addEventListener("click", () => {
+    const isOpen = !musicPanel?.hidden;
+    setMusicPanelOpen(!isOpen);
+  });
+
+  playPauseToggle?.addEventListener("click", () => {
+    if (bgMusic.paused) {
+      safePlayMusic();
+    } else {
+      bgMusic.pause();
+      updatePlayerUI();
+      savePlayerState();
+    }
+  });
+
+  musicPanel?.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  musicWidget?.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!musicWidget || !musicPanel) return;
+    if (musicPanel.hidden) return;
+    if (musicWidget.contains(event.target)) return;
+    setMusicPanelOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    setMusicPanelOpen(false);
+  });
+
+  muteToggle.addEventListener("click", () => {
+    if (bgMusic.muted) {
+      bgMusic.muted = false;
+      const restoredVolume = lastVolumeBeforeMute > 0 ? lastVolumeBeforeMute : DEFAULT_VOLUME;
+      bgMusic.volume = clampVolume(restoredVolume);
+    } else {
+      if (bgMusic.volume > 0) {
+        lastVolumeBeforeMute = bgMusic.volume;
+      }
+      bgMusic.muted = true;
+    }
+
     updatePlayerUI();
     savePlayerState();
-  }
-});
+  });
 
-musicPanel?.addEventListener("click", (event) => {
-  event.stopPropagation();
-});
+  volumeSlider.addEventListener("input", (event) => {
+    const percent = Number(event.target.value);
+    const nextVolume = clampVolume(percent / 100);
+    bgMusic.volume = nextVolume;
 
-musicWidget?.addEventListener("click", (event) => {
-  event.stopPropagation();
-});
-
-document.addEventListener("click", (event) => {
-  if (!musicWidget || !musicPanel) return;
-  if (musicPanel.hidden) return;
-  if (musicWidget.contains(event.target)) return;
-  setMusicPanelOpen(false);
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape") return;
-  setMusicPanelOpen(false);
-});
-
-muteToggle.addEventListener("click", () => {
-  if (bgMusic.muted) {
-    bgMusic.muted = false;
-    const restoredVolume = lastVolumeBeforeMute > 0 ? lastVolumeBeforeMute : DEFAULT_VOLUME;
-    bgMusic.volume = clampVolume(restoredVolume);
-  } else {
-    if (bgMusic.volume > 0) {
-      lastVolumeBeforeMute = bgMusic.volume;
+    if (nextVolume > 0) {
+      lastVolumeBeforeMute = nextVolume;
+      bgMusic.muted = false;
+    } else {
+      bgMusic.muted = true;
     }
-    bgMusic.muted = true;
-  }
 
-  updatePlayerUI();
-  savePlayerState();
-});
+    updatePlayerUI();
+    savePlayerState();
+  });
 
-volumeSlider.addEventListener("input", (event) => {
-  const percent = Number(event.target.value);
-  const nextVolume = clampVolume(percent / 100);
-  bgMusic.volume = nextVolume;
+  bgMusic.addEventListener("play", () => {
+    updatePlayerUI();
+    savePlayerState();
+  });
 
-  if (nextVolume > 0) {
-    lastVolumeBeforeMute = nextVolume;
-    bgMusic.muted = false;
-  } else {
-    bgMusic.muted = true;
-  }
+  bgMusic.addEventListener("pause", () => {
+    stopMusicNotes();
+    updatePlayerUI();
+    savePlayerState();
+  });
+}
 
-  updatePlayerUI();
-  savePlayerState();
-});
-
-bgMusic.addEventListener("play", () => {
-  shouldAutoResumeOnEnvelopeOpen = true;
-  updatePlayerUI();
-  savePlayerState();
-});
-
-bgMusic.addEventListener("pause", () => {
-  shouldAutoResumeOnEnvelopeOpen = false;
-  stopMusicNotes();
-  updatePlayerUI();
-  savePlayerState();
-});
-
+// RSVP y busqueda de invitados.
 function getGuestIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const rawId = (params.get("id") || "").trim();
@@ -1738,18 +1839,6 @@ function getGuestIdFromUrl() {
 
 function getRsvpStorageKey(guestId) {
   return `${RSVP_LOCAL_KEY_PREFIX}${guestId}`;
-}
-
-function readLocalRsvpState(guestId) {
-  if (!guestId) return null;
-
-  try {
-    const raw = localStorage.getItem(getRsvpStorageKey(guestId));
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
 }
 
 function writeLocalRsvpState(guestId, state) {
@@ -1763,6 +1852,8 @@ function writeLocalRsvpState(guestId, state) {
 }
 
 function setRsvpStatus(message, type = "") {
+  if (!rsvpStatus) return;
+
   rsvpStatus.textContent = message;
   rsvpStatus.className = "rsvp-status";
   if (type) {
@@ -1774,58 +1865,150 @@ function setRsvpIdentity(name, cupos) {
   const parsedCupos = Number(cupos);
   currentGuestCupos = Number.isFinite(parsedCupos) ? parsedCupos : null;
   currentGuestName = name || currentGuestName || "";
-  rsvpGreeting.textContent = name ? `Hola, ${name}` : "Hola";
-  rsvpCupos.textContent = `Cupos asignados: ${cupos ?? "CUPOS"}`;
+  if (rsvpGreeting) rsvpGreeting.textContent = name ? `Hola, ${name}` : "Hola";
+  if (rsvpCupos) rsvpCupos.textContent = `Cupos asignados: ${cupos ?? "CUPOS"}`;
 }
 
-function renderCuposConfirmadosOptions(cupos, selectedValue = "") {
-  if (!cuposConfirmadosField) return;
-
-  const maxCupos = Number(cupos);
-  cuposConfirmadosField.innerHTML = "";
-
-  if (!Number.isFinite(maxCupos) || maxCupos < 1) {
-    const fallbackOption = document.createElement("option");
-    fallbackOption.value = "";
-    fallbackOption.textContent = "Sin cupos disponibles";
-    cuposConfirmadosField.appendChild(fallbackOption);
-    cuposConfirmadosField.value = "";
-    cuposConfirmadosField.disabled = true;
-    return;
-  }
-
-  const placeholderOption = document.createElement("option");
-  placeholderOption.value = "";
-  placeholderOption.textContent = "Selecciona una cantidad";
-  cuposConfirmadosField.appendChild(placeholderOption);
-
-  for (let cantidad = 1; cantidad <= maxCupos; cantidad += 1) {
-    const option = document.createElement("option");
-    option.value = String(cantidad);
-    option.textContent = String(cantidad);
-    cuposConfirmadosField.appendChild(option);
-  }
-
-  cuposConfirmadosField.disabled = false;
-  cuposConfirmadosField.value = selectedValue && Number(selectedValue) >= 1 && Number(selectedValue) <= maxCupos
-    ? String(selectedValue)
-    : "1";
+function clearRsvpIdentity() {
+  currentGuestName = "";
+  currentGuestCupos = null;
+  if (rsvpGreeting) rsvpGreeting.textContent = "Hola";
+  if (rsvpCupos) rsvpCupos.textContent = "Cupos asignados: -";
 }
 
-function syncCuposConfirmadosByRespuesta() {
-  if (!respuestaField || !cuposConfirmadosField) return;
+function normalizeSearchInputValue(value) {
+  return String(value || "")
+    .toUpperCase()
+    .replace(/Ñ/g, "__ENIE__")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/__ENIE__/g, "Ñ")
+    .replace(/[^A-ZÑ\s]/g, "")
+    .replace(/\s+/g, " ");
+}
 
-  const confirma = respuestaField.value === "CONFIRMA";
-  if (confirma) {
-    cuposConfirmadosField.required = true;
-    cuposConfirmadosField.value = cuposConfirmadosField.value && Number(cuposConfirmadosField.value) >= 1
-      ? cuposConfirmadosField.value
-      : "1";
-    return;
+function normalizeSearchText(value) {
+  return normalizeSearchInputValue(value).trim();
+}
+
+function applyGuestSearchInputNormalization() {
+  if (!guestSearchInput) return "";
+
+  const rawValue = guestSearchInput.value;
+  const selectionStart = guestSearchInput.selectionStart;
+  const selectionEnd = guestSearchInput.selectionEnd;
+  const normalizedValue = normalizeSearchInputValue(rawValue);
+
+  if (rawValue !== normalizedValue) {
+    guestSearchInput.value = normalizedValue;
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      const lengthDelta = normalizedValue.length - rawValue.length;
+      const nextStart = Math.max(0, selectionStart + lengthDelta);
+      const nextEnd = Math.max(0, selectionEnd + lengthDelta);
+      guestSearchInput.setSelectionRange(nextStart, nextEnd);
+    }
   }
 
-  cuposConfirmadosField.required = false;
-  cuposConfirmadosField.value = "";
+  return normalizedValue;
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email || "").trim());
+}
+
+function updateCorreoRequiredByRespuesta() {
+  if (!correoField || !respuestaField) return;
+  correoField.required = respuestaField.value === "CONFIRMA";
+}
+
+function clearGuestSearchResults() {
+  if (!guestSearchResults) return;
+  guestSearchResults.innerHTML = "";
+}
+
+function renderGuestSearchState(message, type = "") {
+  if (!guestSearchResults) return;
+  clearGuestSearchResults();
+
+  const state = document.createElement("div");
+  state.className = "rsvp-search-state";
+  if (type) state.classList.add(`rsvp-search-state--${type}`);
+  state.setAttribute("role", type === "error" ? "alert" : "status");
+  state.setAttribute("aria-live", "polite");
+
+  if (type === "loading") {
+    const spinner = document.createElement("span");
+    spinner.className = "rsvp-search-spinner";
+    spinner.setAttribute("aria-hidden", "true");
+    state.appendChild(spinner);
+  }
+
+  const text = document.createElement("span");
+  text.textContent = message;
+  state.appendChild(text);
+  guestSearchResults.appendChild(state);
+}
+
+function renderGuestSearchLoading() {
+  renderGuestSearchState("Buscando coincidencias...", "loading");
+}
+
+function renderGuestSearchEmpty() {
+  renderGuestSearchState("No se encontraron invitados con ese nombre.", "empty");
+}
+
+function renderGuestSearchError() {
+  renderGuestSearchState("No pudimos buscar en este momento. Intenta de nuevo.", "error");
+}
+
+function renderGuestSearchResults(results) {
+  if (!guestSearchResults) return;
+  clearGuestSearchResults();
+
+  results.forEach((guest) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "rsvp-search-item";
+    button.setAttribute("role", "option");
+
+    const nameEl = document.createElement("span");
+    nameEl.textContent = guest.nombre || "";
+
+    const detailEl = document.createElement("small");
+    detailEl.textContent = `Cupos: ${guest.cupos} · Estado: ${guest.estado}`;
+
+    button.append(nameEl, detailEl);
+    button.addEventListener("click", () => {
+      currentGuestId = String(guest.id || "").trim();
+      guestSearchRequestId += 1;
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = null;
+      }
+      if (guestSearchInput) {
+        guestSearchInput.value = normalizeSearchInputValue(guest.nombre || "");
+      }
+      setRsvpIdentity(guest.nombre, guest.cupos);
+      clearGuestSearchResults();
+
+      if (FINAL_RSVP_STATES.has(guest.estado)) {
+        lockRsvpFromServerState(currentGuestId, guest.estado, "Tu respuesta ya fue registrada. Gracias.", {
+          guestName: guest.nombre,
+          guestCupos: guest.cupos,
+          celebrate: false,
+          animateForm: false
+        });
+        return;
+      }
+
+      hideRsvpThankYou();
+      showRsvpFormContainer();
+      setRsvpFormInteractivity(true, false);
+      setRsvpStatus("Completa el formulario para confirmar.", "ok");
+    });
+    guestSearchResults.appendChild(button);
+  });
 }
 
 function getRsvpPostContent(estado, name) {
@@ -1945,13 +2128,16 @@ function revealRsvpPostConfirmation(estado, guestName, options = {}) {
 }
 
 function setRsvpFormInteractivity(enabled, hideSubmit = false) {
-  const elements = [respuestaField, cuposConfirmadosField, telefonoField, mensajeField];
+  const elements = [respuestaField, telefonoField, correoField, mensajeField];
   elements.forEach((el) => {
-    el.disabled = !enabled;
+    if (el) el.disabled = !enabled;
   });
-  rsvpForm.classList.toggle("is-disabled", !enabled);
-  rsvpSubmit.disabled = !enabled;
-  rsvpSubmit.hidden = Boolean(hideSubmit);
+  if (guestSearchInput) guestSearchInput.disabled = false;
+  rsvpForm?.classList.toggle("is-disabled", !enabled);
+  if (rsvpSubmit) {
+    rsvpSubmit.disabled = !enabled;
+    rsvpSubmit.hidden = Boolean(hideSubmit);
+  }
 }
 
 function showRsvpFormContainer() {
@@ -2045,13 +2231,26 @@ async function lookupGuest(guestId) {
   return response.json();
 }
 
+async function searchGuestsByName(nombre) {
+  const query = new URLSearchParams({ action: "searchByName", nombre });
+  const response = await fetch(`${RSVP_API_URL}?${query.toString()}`, {
+    method: "GET"
+  });
+
+  if (!response.ok) {
+    throw new Error("No fue posible buscar invitados.");
+  }
+
+  return response.json();
+}
+
 async function submitRsvp(payload) {
   const body = new URLSearchParams({
     action: "submit",
     id: payload.id,
     respuesta: payload.respuesta,
-    cuposConfirmados: payload.cuposConfirmados ?? "",
     telefono: payload.telefono,
+    correo: payload.correo || "",
     mensaje: payload.mensaje || "",
     userAgent: payload.userAgent || ""
   });
@@ -2093,90 +2292,95 @@ function lockRsvpFromServerState(guestId, finalState, finalMessage, options = {}
 }
 
 async function initializeRsvp() {
-  const guestId = getGuestIdFromUrl();
-
-  if (!guestId) {
-    setRsvpFormInteractivity(false, true);
-    hideRsvpThankYou();
-    hideRsvpFormContainer(false);
-    setRsvpStatus("Este enlace no es valido para confirmar asistencia.", "warn");
+  if (!rsvpForm || !rsvpStatus || !rsvpGreeting || !rsvpCupos || !rsvpSubmit || !respuestaField || !telefonoField || !correoField || !mensajeField) {
     return;
   }
 
-  const localState = readLocalRsvpState(guestId);
-  if (localState && localState.confirmed && FINAL_RSVP_STATES.has(localState.estado)) {
-    setRsvpFormInteractivity(false, true);
-    hideRsvpFormContainer(false);
-    setRsvpStatus("Tu respuesta ya fue registrada. Validando informacion...", "warn");
-  } else {
-    hideRsvpThankYou();
-    showRsvpFormContainer();
-    setRsvpFormInteractivity(false, false);
-    setRsvpStatus("Cargando datos de invitado...", "warn");
+  const guestIdFromUrl = getGuestIdFromUrl();
+  hideRsvpThankYou();
+  showRsvpFormContainer();
+  setRsvpFormInteractivity(false, false);
+  updateCorreoRequiredByRespuesta();
+  setRsvpStatus("Busca y selecciona tu nombre para confirmar asistencia.", "warn");
+
+  if (guestSearchInput) {
+    guestSearchInput.addEventListener("input", async () => {
+      const requestId = guestSearchRequestId + 1;
+      guestSearchRequestId = requestId;
+      currentGuestId = "";
+      clearRsvpIdentity();
+      setRsvpFormInteractivity(false, false);
+
+      const normalizedInput = applyGuestSearchInputNormalization();
+      const searchTerm = normalizeSearchText(normalizedInput);
+      clearGuestSearchResults();
+
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+
+      if (searchTerm.length < GUEST_SEARCH_MIN_LENGTH) return;
+      renderGuestSearchLoading();
+
+      searchDebounceTimer = setTimeout(async () => {
+        if (requestId !== guestSearchRequestId) return;
+
+        try {
+          const data = await searchGuestsByName(searchTerm);
+          if (requestId !== guestSearchRequestId || normalizeSearchText(guestSearchInput.value) !== searchTerm) return;
+
+          const results = Array.isArray(data.results) ? data.results : [];
+          if (!results.length) {
+            renderGuestSearchEmpty();
+            return;
+          }
+
+          renderGuestSearchResults(results);
+        } catch {
+          if (requestId !== guestSearchRequestId) return;
+          renderGuestSearchError();
+        }
+      }, GUEST_SEARCH_DEBOUNCE_MS);
+    });
   }
 
-  try {
-    const data = await lookupGuest(guestId);
+  if (guestIdFromUrl) {
+    try {
+      const data = await lookupGuest(guestIdFromUrl);
+      if (data && data.exists) {
+        currentGuestId = String(data.id || guestIdFromUrl).trim();
+        setRsvpIdentity(data.nombre, data.cupos);
+        if (guestSearchInput) guestSearchInput.value = normalizeSearchInputValue(data.nombre || "");
 
-    if (!data.exists) {
-      setRsvpFormInteractivity(false, true);
-      hideRsvpThankYou();
-      hideRsvpFormContainer(false);
-      setRsvpStatus("Este enlace no es valido para confirmar asistencia.", "error");
-      return;
+        if (FINAL_RSVP_STATES.has(data.estado)) {
+          lockRsvpFromServerState(currentGuestId, data.estado, "Tu respuesta ya fue registrada. Gracias.", {
+            guestName: data.nombre || "",
+            guestCupos: data.cupos,
+            celebrate: false,
+            animateForm: false
+          });
+        } else {
+          setRsvpFormInteractivity(true, false);
+          setRsvpStatus("Invitado identificado. Completa el formulario para confirmar.", "ok");
+        }
+      }
+    } catch {
+      setRsvpStatus("No pudimos precargar el invitado por ID. Usa el buscador.", "warn");
     }
-
-    setRsvpIdentity(data.nombre, data.cupos);
-    renderCuposConfirmadosOptions(data.cupos);
-    syncCuposConfirmadosByRespuesta();
-
-    if (FINAL_RSVP_STATES.has(data.estado)) {
-      lockRsvpFromServerState(guestId, data.estado, "Tu respuesta ya fue registrada. Gracias.", {
-        guestName: data.nombre || currentGuestName,
-        guestCupos: data.cupos,
-        celebrate: false,
-        animateForm: false
-      });
-      return;
-    }
-
-    renderRSVPState({
-      estado: data.estado || "PENDIENTE",
-      nombre: data.nombre || currentGuestName,
-      cupos: data.cupos,
-      celebrate: false,
-      animateTransition: false
-    });
-    setRsvpStatus("Completa el formulario para confirmar tu asistencia.", "warn");
-  } catch {
-    if (localState && localState.confirmed && FINAL_RSVP_STATES.has(localState.estado)) {
-      lockRsvpFromServerState(guestId, localState.estado, "Tu respuesta ya fue registrada. Gracias.", {
-        guestName: localState.nombre || currentGuestName,
-        guestCupos: localState.cupos ?? null,
-        celebrate: false,
-        animateForm: false
-      });
-      return;
-    }
-
-    renderRSVPState({
-      estado: "PENDIENTE",
-      nombre: currentGuestName,
-      cupos: null,
-      celebrate: false,
-      animateTransition: false
-    });
-    setRsvpStatus("No pudimos conectar con RSVP. Puedes reintentar en unos segundos.", "error");
   }
 
   rsvpForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const telefono = telefonoField.value.trim();
+    const correo = correoField.value.trim();
     const respuesta = respuestaField.value;
-    const cuposConfirmadosRaw = cuposConfirmadosField ? cuposConfirmadosField.value : "";
-    const cuposConfirmados = Number(cuposConfirmadosRaw);
     const mensaje = mensajeField.value.trim();
+
+    if (!currentGuestId) {
+      setRsvpStatus("Debes buscar y seleccionar tu nombre antes de enviar.", "error");
+      return;
+    }
 
     if (!telefono) {
       setRsvpStatus("El telefono es obligatorio.", "error");
@@ -2188,21 +2392,14 @@ async function initializeRsvp() {
       return;
     }
 
-    if (respuesta === "CONFIRMA") {
-      if (!Number.isInteger(cuposConfirmados)) {
-        setRsvpStatus("Selecciona cuantos cupos vas a confirmar.", "error");
-        return;
-      }
+    if (respuesta === "CONFIRMA" && !correo) {
+      setRsvpStatus("El correo es obligatorio para confirmar asistencia.", "error");
+      return;
+    }
 
-      if (cuposConfirmados < 1) {
-        setRsvpStatus("Debes confirmar al menos 1 cupo.", "error");
-        return;
-      }
-
-      if (Number.isInteger(currentGuestCupos) && cuposConfirmados > currentGuestCupos) {
-        setRsvpStatus("La cantidad confirmada no puede superar tus cupos asignados.", "error");
-        return;
-      }
+    if (correo && !isValidEmail(correo)) {
+      setRsvpStatus("Ingresa un correo electronico valido.", "error");
+      return;
     }
 
     rsvpSubmit.disabled = true;
@@ -2210,19 +2407,19 @@ async function initializeRsvp() {
 
     try {
       const result = await submitRsvp({
-        id: guestId,
+        id: currentGuestId,
         respuesta,
-        cuposConfirmados: respuesta === "CONFIRMA" ? cuposConfirmados : 0,
         telefono,
+        correo,
         mensaje,
         userAgent: navigator.userAgent || ""
       });
 
       if (!result.ok) {
         if (result.code === "ALREADY_SUBMITTED" && FINAL_RSVP_STATES.has(result.estado)) {
-          lockRsvpFromServerState(guestId, result.estado, "Tu respuesta ya fue registrada. Gracias.", {
+          lockRsvpFromServerState(currentGuestId, result.estado, "Tu respuesta ya fue registrada. Gracias.", {
             guestName: currentGuestName,
-            guestCupos: localState?.cupos ?? null,
+            guestCupos: currentGuestCupos,
             celebrate: false,
             animateForm: true
           });
@@ -2234,9 +2431,9 @@ async function initializeRsvp() {
         return;
       }
 
-      lockRsvpFromServerState(guestId, result.estadoFinal, "Tu respuesta fue registrada con exito. Gracias.", {
+      lockRsvpFromServerState(currentGuestId, result.estadoFinal, "Tu respuesta fue registrada con exito. Gracias.", {
         guestName: currentGuestName || result.nombre || "",
-        guestCupos: localState?.cupos ?? null,
+        guestCupos: currentGuestCupos,
         celebrate: true,
         animateForm: true
       });
@@ -2247,10 +2444,11 @@ async function initializeRsvp() {
   });
 
   if (respuestaField) {
-    respuestaField.addEventListener("change", syncCuposConfirmadosByRespuesta);
+    respuestaField.addEventListener("change", updateCorreoRequiredByRespuesta);
   }
 }
 
+// Contador e inicializacion general.
 const weddingDate = new Date("2026-06-27T17:00:00");
 
 const daysEl = document.getElementById("days");
@@ -2259,6 +2457,8 @@ const minutesEl = document.getElementById("minutes");
 const secondsEl = document.getElementById("seconds");
 
 function updateCountdown() {
+  if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
   const now = new Date();
   const diff = weddingDate - now;
 
@@ -2282,15 +2482,31 @@ function updateCountdown() {
   secondsEl.textContent = String(remainingSeconds).padStart(2, "0");
 }
 
-updateCountdown();
-setInterval(updateCountdown, 1000);
-invitation.hidden = true;
-if (envelopeSeal) {
-  envelopeSeal.textContent = ENVELOPE_INITIALS;
+function initializeCountdown() {
+  if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
+  updateCountdown();
+  window.setInterval(updateCountdown, 1000);
 }
-initializeBackgroundEffects();
-initializeInvitationInfo();
-initializeCameraIconAnimation();
-initializeSectionRevealAnimations();
-initializeSectionDetailModals();
-initializeRsvp();
+
+function initializeApp() {
+  if (invitation) {
+    invitation.hidden = true;
+  }
+  if (envelopeSeal) {
+    envelopeSeal.textContent = ENVELOPE_INITIALS;
+  }
+
+  initializeBackgroundEffects();
+  initializeInvitationInfo();
+  initializeCameraIconAnimation();
+  initializeLocationModal();
+  initializeSectionDetailModals();
+  initializeEnvelopeOpening();
+  initializeMusicPlayer();
+  initializeCountdown();
+  void initializeRsvp();
+  initializeSectionRevealAnimations();
+}
+
+initializeApp();

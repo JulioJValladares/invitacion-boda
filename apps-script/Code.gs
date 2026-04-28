@@ -9,7 +9,7 @@ var COL = {
   TIMESTAMP_CONFIRMACION: 5,
   TELEFONO_CONFIRMADO: 6,
   MENSAJE_CONFIRMADO: 7,
-  CUPOS_CONFIRMADOS: 8
+  CORREO_CONFIRMADO: 8
 };
 
 var ESTADO_PENDIENTE = "PENDIENTE";
@@ -18,25 +18,10 @@ var ESTADO_NO_ASISTE = "NO_ASISTE";
 
 function doGet(e) {
   try {
-    var action = getParam_(e, "action");
-    if (action && action !== "lookup") {
-      return jsonResponse_({
-        ok: false,
-        code: "INVALID_ACTION",
-        message: "Accion no valida."
-      });
-    }
-
-    var id = normalizeId_(getParam_(e, "id"));
-    if (!id) {
-      return jsonResponse_({
-        ok: true,
-        exists: false
-      });
-    }
-
+    var action = getParam_(e, "action") || "lookup";
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var invitadosSheet = ss.getSheetByName(SHEET_INVITADOS);
+
     if (!invitadosSheet) {
       return jsonResponse_({
         ok: false,
@@ -45,13 +30,28 @@ function doGet(e) {
       });
     }
 
-    var found = findInvitadoById_(invitadosSheet, id);
-    if (!found) {
+    if (action === "searchByName") {
+      var nombre = getParam_(e, "nombre");
+      if (!nombre) return jsonResponse_({ ok: true, results: [] });
       return jsonResponse_({
         ok: true,
-        exists: false
+        results: findInvitadosByNombre_(invitadosSheet, nombre)
       });
     }
+
+    if (action !== "lookup") {
+      return jsonResponse_({
+        ok: false,
+        code: "INVALID_ACTION",
+        message: "Accion no valida."
+      });
+    }
+
+    var id = normalizeId_(getParam_(e, "id"));
+    if (!id) return jsonResponse_({ ok: true, exists: false });
+
+    var found = findInvitadoById_(invitadosSheet, id);
+    if (!found) return jsonResponse_({ ok: true, exists: false });
 
     return jsonResponse_({
       ok: true,
@@ -65,16 +65,18 @@ function doGet(e) {
     return jsonResponse_({
       ok: false,
       code: "SERVER_ERROR",
-      message: "Error interno en lookup.",
-      detail: String(err)
+      message: "Error interno en doGet."
     });
   }
 }
 
 function doPost(e) {
+  var lock = null;
+  var lockAcquired = false;
+
   try {
-    var action = getParam_(e, "action");
-    if (action && action !== "submit") {
+    var action = getParam_(e, "action") || "submit";
+    if (action !== "submit") {
       return jsonResponse_({
         ok: false,
         code: "INVALID_ACTION",
@@ -86,8 +88,8 @@ function doPost(e) {
     var id = normalizeId_(payload.id);
     var respuesta = normalizeRespuesta_(payload.respuesta);
     var telefono = String(payload.telefono || "").trim();
+    var correo = String(payload.correo || "").trim();
     var mensaje = String(payload.mensaje || "").trim();
-    var cuposConfirmados = parseCuposConfirmados_(payload.cuposConfirmados);
     var userAgent = String(payload.userAgent || "").trim();
 
     if (!id || !respuesta || !telefono) {
@@ -99,11 +101,19 @@ function doPost(e) {
     }
 
     if (!isValidPhone_(telefono)) {
+      return jsonResponse_({ ok: false, code: "INVALID_PHONE", message: "Telefono invalido." });
+    }
+
+    if (respuesta === "CONFIRMA" && !correo) {
       return jsonResponse_({
         ok: false,
-        code: "INVALID_PHONE",
-        message: "Telefono invalido."
+        code: "MISSING_EMAIL",
+        message: "El correo es obligatorio para confirmar asistencia."
       });
+    }
+
+    if (correo && !isValidEmail_(correo)) {
+      return jsonResponse_({ ok: false, code: "INVALID_EMAIL", message: "Correo invalido." });
     }
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -117,13 +127,21 @@ function doPost(e) {
       });
     }
 
-    var found = findInvitadoById_(invitadosSheet, id);
-    if (!found) {
+    lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(10000);
+      lockAcquired = true;
+    } catch (_lockErr) {
       return jsonResponse_({
         ok: false,
-        code: "INVALID_ID",
-        message: "ID no encontrado."
+        code: "LOCK_TIMEOUT",
+        message: "No fue posible registrar en este momento. Intenta nuevamente."
       });
+    }
+
+    var found = findInvitadoById_(invitadosSheet, id);
+    if (!found) {
+      return jsonResponse_({ ok: false, code: "INVALID_ID", message: "ID no encontrado." });
     }
 
     var estadoActual = String(found.estado || ESTADO_PENDIENTE).toUpperCase();
@@ -145,81 +163,50 @@ function doPost(e) {
     }
 
     var estadoFinal = (respuesta === "CONFIRMA") ? ESTADO_CONFIRMADO : ESTADO_NO_ASISTE;
-    var cuposAsignados = parseCuposAsignados_(found.cupos);
-    var cuposParaGuardar = "";
-
-    if (respuesta === "CONFIRMA") {
-      if (cuposConfirmados === null) {
-        return jsonResponse_({
-          ok: false,
-          code: "INVALID_CUPOS_CONFIRMADOS",
-          message: "Debes indicar cuantos cupos confirmas."
-        });
-      }
-
-      if (cuposConfirmados < 1) {
-        return jsonResponse_({
-          ok: false,
-          code: "INVALID_CUPOS_CONFIRMADOS",
-          message: "Debes confirmar al menos 1 cupo."
-        });
-      }
-
-      if (cuposConfirmados > cuposAsignados) {
-        return jsonResponse_({
-          ok: false,
-          code: "CUPOS_EXCEEDED",
-          message: "La cantidad confirmada no puede superar los cupos asignados."
-        });
-      }
-
-      cuposParaGuardar = cuposConfirmados;
-    } else if (respuesta === "NO_ASISTE") {
-      if (cuposConfirmados !== null && cuposConfirmados > cuposAsignados) {
-        return jsonResponse_({
-          ok: false,
-          code: "CUPOS_EXCEEDED",
-          message: "La cantidad confirmada no puede superar los cupos asignados."
-        });
-      }
-      cuposParaGuardar = (cuposConfirmados === null) ? 0 : cuposConfirmados;
-    }
-
     var timestamp = new Date();
 
     invitadosSheet.getRange(found.row, COL.ESTADO).setValue(estadoFinal);
     invitadosSheet.getRange(found.row, COL.TIMESTAMP_CONFIRMACION).setValue(timestamp);
     invitadosSheet.getRange(found.row, COL.TELEFONO_CONFIRMADO).setValue(telefono);
     invitadosSheet.getRange(found.row, COL.MENSAJE_CONFIRMADO).setValue(mensaje);
-    invitadosSheet.getRange(found.row, COL.CUPOS_CONFIRMADOS).setValue(cuposParaGuardar);
+    invitadosSheet.getRange(found.row, COL.CORREO_CONFIRMADO).setValue(correo);
 
+    ensureLogHeaders_(logSheet);
     logSheet.appendRow([
       timestamp,
       found.id,
       found.nombre,
       found.cupos,
       respuesta,
-      cuposParaGuardar,
       telefono,
+      correo,
       mensaje,
       userAgent
     ]);
+
+    if (respuesta === "CONFIRMA" && correo) {
+      sendConfirmationEmail_(String(found.nombre || ""), correo);
+    }
 
     return jsonResponse_({
       ok: true,
       id: String(found.id),
       nombre: String(found.nombre || ""),
       cupos: Number(found.cupos || 0),
-      cuposConfirmados: cuposParaGuardar,
       estadoFinal: estadoFinal
     });
   } catch (err) {
     return jsonResponse_({
       ok: false,
       code: "SERVER_ERROR",
-      message: "Error interno en submit.",
-      detail: String(err)
+      message: "Error interno en submit."
     });
+  } finally {
+    if (lockAcquired && lock) {
+      try {
+        lock.releaseLock();
+      } catch (_ignored) {}
+    }
   }
 }
 
@@ -227,7 +214,7 @@ function findInvitadoById_(sheet, id) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return null;
 
-  var values = sheet.getRange(2, 1, lastRow - 1, COL.CUPOS_CONFIRMADOS).getValues();
+  var values = sheet.getRange(2, 1, lastRow - 1, COL.CORREO_CONFIRMADO).getValues();
   var target = normalizeId_(id);
 
   for (var i = 0; i < values.length; i++) {
@@ -239,11 +226,40 @@ function findInvitadoById_(sheet, id) {
         id: row[COL.ID - 1],
         nombre: row[COL.NOMBRE - 1],
         cupos: row[COL.CUPOS - 1],
-        estado: String(row[COL.ESTADO - 1] || ESTADO_PENDIENTE).toUpperCase()
+        estado: String(row[COL.ESTADO - 1] || ESTADO_PENDIENTE).toUpperCase(),
+        correo: String(row[COL.CORREO_CONFIRMADO - 1] || "")
       };
     }
   }
   return null;
+}
+
+function findInvitadosByNombre_(sheet, nombre) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+
+  var terms = getSearchTerms_(nombre);
+  if (!terms.length) return [];
+
+  var values = sheet.getRange(2, 1, lastRow - 1, COL.CORREO_CONFIRMADO).getValues();
+  var results = [];
+
+  for (var i = 0; i < values.length; i++) {
+    var row = values[i];
+    var currentNombre = String(row[COL.NOMBRE - 1] || "");
+    if (!nombreMatchesSearch_(currentNombre, terms)) continue;
+
+    results.push({
+      id: String(row[COL.ID - 1] || ""),
+      nombre: currentNombre,
+      cupos: Number(row[COL.CUPOS - 1] || 0),
+      estado: String(row[COL.ESTADO - 1] || ESTADO_PENDIENTE).toUpperCase()
+    });
+
+    if (results.length >= 10) break;
+  }
+
+  return results;
 }
 
 function parsePayload_(e) {
@@ -284,23 +300,120 @@ function normalizeRespuesta_(value) {
   return "";
 }
 
-function parseCuposAsignados_(value) {
-  var cupos = Number(value);
-  if (!isFinite(cupos) || cupos < 0) return 0;
-  return Math.floor(cupos);
+function normalizeName_(value) {
+  var input = String(value || "").trim().toUpperCase();
+  return input
+    .replace(/Ñ/g, "__ENIE__")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/__ENIE__/g, "Ñ")
+    .replace(/\s+/g, " ");
 }
 
-function parseCuposConfirmados_(value) {
-  var raw = String(value || "").trim();
-  if (!raw) return null;
-  var parsed = Number(raw);
-  if (!isFinite(parsed)) return null;
-  if (Math.floor(parsed) !== parsed) return null;
-  return parsed;
+function getSearchTerms_(value) {
+  var normalized = normalizeName_(value);
+  if (!normalized) return [];
+  return normalized.split(" ").filter(function(term) {
+    return Boolean(term);
+  });
+}
+
+function nombreMatchesSearch_(nombreCompleto, terms) {
+  var normalizedNombre = normalizeName_(nombreCompleto);
+  if (!normalizedNombre || !terms.length) return false;
+
+  return terms.every(function(term) {
+    return normalizedNombre.indexOf(term) !== -1;
+  });
 }
 
 function isValidPhone_(phone) {
   return /^\+?[0-9()\-\s]{7,20}$/.test(String(phone || "").trim());
+}
+
+function isValidEmail_(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email || "").trim());
+}
+
+function buildGoogleCalendarLink_() {
+  var baseUrl = "https://calendar.google.com/calendar/render";
+  var params = [
+    "action=TEMPLATE",
+    "text=" + encodeURIComponent("Boda Julio & Susan"),
+    "dates=20260627T163000/20260627T220000",
+    "location=" + encodeURIComponent("Jardin el cerro"),
+    "details=" + encodeURIComponent("Te esperamos para celebrar nuestra boda"),
+    "ctz=" + encodeURIComponent("America/Guatemala")
+  ];
+  return baseUrl + "?" + params.join("&");
+}
+
+function buildIcsFile_() {
+  var ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Boda Julio y Susan//RSVP//ES",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    "UID:" + new Date().getTime() + "@boda-julio-susan",
+    "DTSTAMP:20260424T000000Z",
+    "DTSTART;TZID=America/Guatemala:20260627T163000",
+    "DTEND;TZID=America/Guatemala:20260627T220000",
+    "SUMMARY:Boda Julio & Susan",
+    "LOCATION:Jardin el cerro",
+    "DESCRIPTION:Te esperamos para celebrar nuestra boda",
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
+
+  return Utilities.newBlob(ics, "text/calendar", "boda-julio-susan.ics");
+}
+
+function sendConfirmationEmail_(nombre, correo) {
+  var googleCalendarLink = buildGoogleCalendarLink_();
+  var safeName = String(nombre || "invitado").trim() || "invitado";
+  var body = [
+    "Hola " + safeName + ",",
+    "",
+    "Tu asistencia ha sido confirmada para nuestra boda.",
+    "",
+    "Evento: Boda Julio & Susan",
+    "Fecha: 27 de junio de 2026",
+    "Hora: 4:30 PM a 10:00 PM",
+    "Lugar: Jardin el cerro",
+    "",
+    "Gracias por confirmar tu asistencia. Será muy especial compartir este día contigo.",
+    "",
+    "Agregar a Google Calendar:",
+    googleCalendarLink
+  ].join("\n");
+
+  MailApp.sendEmail({
+    to: correo,
+    subject: "Confirmacion de asistencia - Boda Julio & Susan",
+    body: body,
+    attachments: [buildIcsFile_()]
+  });
+}
+
+function ensureLogHeaders_(sheet) {
+  if (sheet.getLastRow() > 0) {
+    var header = sheet.getRange(1, 1, 1, 9).getValues()[0];
+    if (String(header[6] || "").toUpperCase() === "CORREO_CONFIRMADO") return;
+  }
+
+  sheet.getRange(1, 1, 1, 9).setValues([[
+    "TIMESTAMP",
+    "ID",
+    "NOMBRE",
+    "CUPOS",
+    "RESPUESTA",
+    "TELEFONO_CONFIRMADO",
+    "CORREO_CONFIRMADO",
+    "MENSAJE_CONFIRMADO",
+    "USER_AGENT"
+  ]]);
 }
 
 function jsonResponse_(obj) {
