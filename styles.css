@@ -5755,8 +5755,31 @@ body {
 }
 
 @media (max-width: 760px) {
+  .wave-frame > .hero-section.glass-card.flow-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(22px, 6.4vw, 34px);
+    min-height: auto;
+    height: auto;
+    overflow: visible;
+    padding-block:
+      calc(clamp(46px, 13vw, 72px) + var(--wave-safe-top-simple))
+      calc(clamp(46px, 13vw, 72px) + var(--wave-safe-bottom-simple));
+  }
+
+  .hero-section.glass-card > .kicker,
+  .hero-section.glass-card > .hero-names,
+  .hero-section.glass-card > .hero-quote {
+    position: static;
+    transform: none;
+    margin: 0;
+  }
+
   .hero-section.glass-card > .kicker {
     font-size: clamp(1.34rem, 4.8vw, 1.62rem);
+    line-height: 1.28;
   }
 
   .hero-section.glass-card > .hero-names {
@@ -5767,14 +5790,13 @@ body {
     overflow: visible;
     white-space: nowrap;
     font-size: clamp(2.9rem, 13vw, 4.28rem);
-    line-height: 1.08;
+    line-height: 1.2;
     letter-spacing: 0;
-    margin-top: clamp(24px, 6.6vw, 38px);
-    margin-bottom: clamp(6px, 2vw, 12px);
   }
 
   .hero-section.glass-card > .hero-quote {
     font-size: clamp(1.52rem, 6.1vw, 1.84rem);
+    line-height: 1.55;
   }
 
   .hero-date-section .ceremony-title {
