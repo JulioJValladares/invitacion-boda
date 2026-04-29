@@ -415,19 +415,20 @@ h1 {
 }
 
 .hero-date-section > .section-icon-img {
+  width: clamp(220px, 25vw, 290px);
+}
+
+.countdown-section > .calendar-icon {
   width: clamp(190px, 22vw, 250px);
 }
 
 .venue-section > .section-icon-img {
-  width: clamp(190px, 22vw, 250px);
+  width: clamp(220px, 25vw, 290px);
 }
 
-.regalos-section > .regalos-trigger-icon {
-  width: clamp(190px, 22vw, 250px);
-}
-
+.regalos-section > .regalos-trigger-icon,
 .dresscode-section > .dresscode-trigger-icon {
-  width: clamp(160px, 18vw, 205px);
+  width: clamp(190px, 22vw, 250px);
 }
 
 .dresscode-trigger-icon,
@@ -4245,7 +4246,7 @@ body {
   }
 
   .hero-date-section .section-icon-img {
-    width: clamp(150px, 40vw, 190px);
+    width: clamp(175px, 45vw, 220px);
     margin-bottom: 8px;
   }
 
