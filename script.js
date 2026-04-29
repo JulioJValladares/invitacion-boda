@@ -94,6 +94,8 @@ let guestSearchRequestId = 0;
 let isEnvelopeAnimating = false;
 let regalosCopyStatusTimer = null;
 let lastVolumeBeforeMute = DEFAULT_VOLUME;
+let wasPlayingBeforeHidden = false;
+let pausedMusicForPageLifecycle = false;
 // Ajustar aqui la frecuencia de particulas (en ms, rango min/max).
 const FRECUENCIA_PARTICULAS = { min: 300, max: 600 };
 // Ajustar aqui el tamano base de particulas.
@@ -152,19 +154,44 @@ const INVITATION_INFO_CONFIG = {
     // Editar aqui las imagenes y frases del carrusel.
     slides: [
       {
-        src: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1400&q=80",
-        alt: "Pareja sonriendo en jardin",
+        src: "assets/icons_carrusel/carrusel1.jpeg",
+        alt: "Julio y Sara compartiendo un momento especial",
         caption: "Tu sonrisa siempre sera mi lugar favorito."
       },
       {
-        src: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1400&q=80",
-        alt: "Manos de pareja con anillo",
+        src: "assets/icons_carrusel/carrusel2.jpeg",
+        alt: "Julio y Sara celebrando su historia",
         caption: "Dos vidas, una promesa para toda la vida."
       },
       {
-        src: "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1400&q=80",
-        alt: "Atardecer romantico de pareja",
+        src: "assets/icons_carrusel/carrusel3.jpeg",
+        alt: "Julio y Sara en un recuerdo romantico",
         caption: "Contigo, cada atardecer sabe a eternidad."
+      },
+      {
+        src: "assets/icons_carrusel/carrusel4.jpeg",
+        alt: "Julio y Sara sonriendo juntos",
+        caption: "Lo mas bonito de la vida es caminarla contigo."
+      },
+      {
+        src: "assets/icons_carrusel/carrusel5.jpeg",
+        alt: "Julio y Sara compartiendo una mirada",
+        caption: "En tus ojos encontre mi hogar."
+      },
+      {
+        src: "assets/icons_carrusel/carrusel6.jpeg",
+        alt: "Julio y Sara viviendo un momento feliz",
+        caption: "Cada instante contigo se vuelve recuerdo favorito."
+      },
+      {
+        src: "assets/icons_carrusel/carrusel7.jpeg",
+        alt: "Julio y Sara abrazados",
+        caption: "Nuestro amor es la historia que mas nos gusta contar."
+      },
+      {
+        src: "assets/icons_carrusel/carrusel8.jpeg",
+        alt: "Julio y Sara juntos",
+        caption: "Y asi, de la mano, elegimos para siempre."
       }
     ]
   },
@@ -1685,6 +1712,46 @@ async function safePlayMusic() {
   }
 }
 
+function isPageVisibleToUser() {
+  const hasDocumentFocus = typeof document.hasFocus !== "function" || document.hasFocus();
+  return !document.hidden && hasDocumentFocus;
+}
+
+function pauseMusicForHiddenPage() {
+  if (!bgMusic) return;
+
+  if (pausedMusicForPageLifecycle) return;
+
+  wasPlayingBeforeHidden = !bgMusic.paused;
+  if (!wasPlayingBeforeHidden) return;
+
+  pausedMusicForPageLifecycle = true;
+  bgMusic.pause();
+  updatePlayerUI();
+  savePlayerState();
+}
+
+function resumeMusicForVisiblePage() {
+  if (!bgMusic || !isPageVisibleToUser()) return;
+
+  const shouldResume = pausedMusicForPageLifecycle && wasPlayingBeforeHidden;
+  pausedMusicForPageLifecycle = false;
+  wasPlayingBeforeHidden = false;
+
+  if (!shouldResume) return;
+
+  safePlayMusic();
+}
+
+function handleMusicVisibilityChange() {
+  if (document.hidden) {
+    pauseMusicForHiddenPage();
+    return;
+  }
+
+  resumeMusicForVisiblePage();
+}
+
 function updatePlayerUI() {
   if (!bgMusic || !musicToggle || !muteToggle || !volumeSlider) return;
 
@@ -1828,6 +1895,12 @@ function initializeMusicPlayer() {
     updatePlayerUI();
     savePlayerState();
   });
+
+  document.addEventListener("visibilitychange", handleMusicVisibilityChange);
+  window.addEventListener("pagehide", pauseMusicForHiddenPage);
+  window.addEventListener("pageshow", resumeMusicForVisiblePage);
+  window.addEventListener("blur", pauseMusicForHiddenPage);
+  window.addEventListener("focus", resumeMusicForVisiblePage);
 }
 
 // RSVP y busqueda de invitados.

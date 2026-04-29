@@ -10,7 +10,7 @@
   --color-text-secondary: #7a7168;
   --color-button: #a48d72;
   --color-button-hover: #927b62;
-  --bg-photo-url: url("assets/icons/fondo.jpeg");
+  --bg-photo-url: url("assets/icons/fondo.JPG");
 
   --envelope-front: #e9dfcf;
   --envelope-flap: #ded2bf;
@@ -593,7 +593,7 @@ h1 {
   box-shadow: none;
 }
 
-.countdown div:not(:last-child)::after {
+.countdown div::after {
   content: "";
   position: absolute;
   top: 8px;
@@ -5715,15 +5715,16 @@ body {
 }
 
 .hero-section.glass-card > .kicker {
-  font-size: clamp(1.1rem, 2vw, 1.38rem);
+  font-size: clamp(1.28rem, 2.35vw, 1.62rem);
 }
 
-.hero-section .hero-names {
-  font-size: clamp(4.1rem, 9.2vw, 7.4rem);
+.hero-section.glass-card > .hero-names {
+  font-size: clamp(4.65rem, 10.4vw, 8.25rem);
+  margin-top: clamp(18px, 3vw, 34px);
 }
 
 .hero-section.glass-card > .hero-quote {
-  font-size: clamp(1.26rem, 2.6vw, 1.74rem);
+  font-size: clamp(1.46rem, 3vw, 2rem);
 }
 
 /* Ajuste puntual de textos en Ceremonia */
@@ -5750,15 +5751,16 @@ body {
 
 @media (max-width: 760px) {
   .hero-section.glass-card > .kicker {
-    font-size: clamp(1rem, 3.6vw, 1.18rem);
+    font-size: clamp(1.12rem, 4vw, 1.34rem);
   }
 
-  .hero-section .hero-names {
-    font-size: clamp(2.55rem, 12.4vw, 5rem);
+  .hero-section.glass-card > .hero-names {
+    font-size: clamp(3.05rem, 14vw, 5.6rem);
+    margin-top: clamp(16px, 5vw, 26px);
   }
 
   .hero-section.glass-card > .hero-quote {
-    font-size: clamp(1.12rem, 4.8vw, 1.34rem);
+    font-size: clamp(1.28rem, 5.2vw, 1.52rem);
   }
 
   .hero-date-section .ceremony-title {
