@@ -5720,7 +5720,7 @@ body {
 
 .hero-section.glass-card > .hero-names {
   font-size: clamp(4.65rem, 10.4vw, 8.25rem);
-  margin-top: clamp(42px, 5.8vw, 72px);
+  margin-top: clamp(32px, 4.8vw, 58px);
 }
 
 .hero-section.glass-card > .hero-quote {
@@ -5755,8 +5755,17 @@ body {
   }
 
   .hero-section.glass-card > .hero-names {
-    font-size: clamp(3.05rem, 14vw, 5.6rem);
-    margin-top: clamp(34px, 8.4vw, 54px);
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: min(100%, calc(100vw - 48px));
+    overflow: visible;
+    white-space: nowrap;
+    font-size: clamp(2.35rem, 11.2vw, 3.55rem);
+    line-height: 1.08;
+    letter-spacing: 0;
+    margin-top: clamp(24px, 6.6vw, 38px);
+    margin-bottom: clamp(6px, 2vw, 12px);
   }
 
   .hero-section.glass-card > .hero-quote {
