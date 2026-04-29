@@ -426,6 +426,10 @@ h1 {
   width: clamp(190px, 22vw, 250px);
 }
 
+.dresscode-section > .dresscode-trigger-icon {
+  width: clamp(160px, 18vw, 205px);
+}
+
 .dresscode-trigger-icon,
 .regalos-trigger-icon {
   transform-origin: center center;
@@ -4081,7 +4085,7 @@ body {
   --itinerary-line-progress: 0;
   --itinerary-marker-size: 18px;
   --itinerary-card-max-width: 430px;
-  --itinerary-art-size: clamp(96px, 10.6vw, 122px);
+  --itinerary-art-size: clamp(108px, 11.8vw, 138px);
 }
 
 .itinerary-card,
@@ -4200,7 +4204,7 @@ body {
   .itinerary-list {
     --itinerary-axis-width: 92px;
     --itinerary-card-max-width: 360px;
-    --itinerary-art-size: 100px;
+    --itinerary-art-size: 112px;
   }
 }
 
@@ -4298,7 +4302,7 @@ body {
     --itinerary-axis-width: 40px;
     --itinerary-axis-position: calc(var(--itinerary-axis-width) / 2);
     --itinerary-card-max-width: none;
-    --itinerary-art-size: 86px;
+    --itinerary-art-size: 96px;
     gap: 22px;
   }
 
@@ -5715,16 +5719,16 @@ body {
 }
 
 .hero-section.glass-card > .kicker {
-  font-size: clamp(1.28rem, 2.35vw, 1.62rem);
+  font-size: clamp(1.66rem, 3.05vw, 2.12rem);
 }
 
 .hero-section.glass-card > .hero-names {
-  font-size: clamp(4.65rem, 10.4vw, 8.25rem);
+  font-size: clamp(6rem, 13.1vw, 10.6rem);
   margin-top: clamp(32px, 4.8vw, 58px);
 }
 
 .hero-section.glass-card > .hero-quote {
-  font-size: clamp(1.46rem, 3vw, 2rem);
+  font-size: clamp(1.9rem, 3.75vw, 2.56rem);
 }
 
 /* Ajuste puntual de textos en Ceremonia */
@@ -5751,7 +5755,7 @@ body {
 
 @media (max-width: 760px) {
   .hero-section.glass-card > .kicker {
-    font-size: clamp(1.12rem, 4vw, 1.34rem);
+    font-size: clamp(1.34rem, 4.8vw, 1.62rem);
   }
 
   .hero-section.glass-card > .hero-names {
@@ -5761,7 +5765,7 @@ body {
     max-width: min(100%, calc(100vw - 48px));
     overflow: visible;
     white-space: nowrap;
-    font-size: clamp(2.35rem, 11.2vw, 3.55rem);
+    font-size: clamp(2.9rem, 13vw, 4.28rem);
     line-height: 1.08;
     letter-spacing: 0;
     margin-top: clamp(24px, 6.6vw, 38px);
@@ -5769,7 +5773,7 @@ body {
   }
 
   .hero-section.glass-card > .hero-quote {
-    font-size: clamp(1.28rem, 5.2vw, 1.52rem);
+    font-size: clamp(1.52rem, 6.1vw, 1.84rem);
   }
 
   .hero-date-section .ceremony-title {
