@@ -5720,7 +5720,7 @@ body {
 
 .hero-section.glass-card > .hero-names {
   font-size: clamp(4.65rem, 10.4vw, 8.25rem);
-  margin-top: clamp(18px, 3vw, 34px);
+  margin-top: clamp(42px, 5.8vw, 72px);
 }
 
 .hero-section.glass-card > .hero-quote {
@@ -5734,11 +5734,11 @@ body {
 
 .hero-date-section .ceremony-month,
 .hero-date-section .hero-date-line {
-  font-size: clamp(1.42rem, 2.8vw, 1.76rem);
+  font-size: clamp(1.72rem, 3.25vw, 2.15rem);
 }
 
 .hero-date-section .ceremony-date-side {
-  font-size: clamp(1.38rem, 2.8vw, 1.74rem);
+  font-size: clamp(1.62rem, 3.1vw, 2rem);
 }
 
 .hero-date-section .ceremony-day {
@@ -5746,7 +5746,7 @@ body {
 }
 
 .hero-date-section .ceremony-year {
-  font-size: clamp(1.18rem, 2.4vw, 1.48rem);
+  font-size: clamp(1.42rem, 2.75vw, 1.76rem);
 }
 
 @media (max-width: 760px) {
@@ -5756,7 +5756,7 @@ body {
 
   .hero-section.glass-card > .hero-names {
     font-size: clamp(3.05rem, 14vw, 5.6rem);
-    margin-top: clamp(16px, 5vw, 26px);
+    margin-top: clamp(34px, 8.4vw, 54px);
   }
 
   .hero-section.glass-card > .hero-quote {
@@ -5768,11 +5768,11 @@ body {
   }
 
   .hero-date-section .ceremony-month {
-    font-size: clamp(1.14rem, 4.8vw, 1.42rem);
+    font-size: clamp(1.34rem, 5.7vw, 1.68rem);
   }
 
   .hero-date-section .ceremony-date-side {
-    font-size: clamp(1.02rem, 4.4vw, 1.28rem);
+    font-size: clamp(1.15rem, 4.85vw, 1.46rem);
   }
 
   .hero-date-section .ceremony-day {
@@ -5780,11 +5780,11 @@ body {
   }
 
   .hero-date-section .ceremony-year {
-    font-size: clamp(1.02rem, 4.3vw, 1.24rem);
+    font-size: clamp(1.18rem, 4.9vw, 1.42rem);
   }
 
   .hero-date-section .hero-date-line {
-    font-size: clamp(1.2rem, 5.2vw, 1.5rem);
+    font-size: clamp(1.4rem, 5.85vw, 1.78rem);
   }
 }
 
