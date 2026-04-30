@@ -426,9 +426,12 @@ h1 {
   width: clamp(220px, 25vw, 290px);
 }
 
-.regalos-section > .regalos-trigger-icon,
-.dresscode-section > .dresscode-trigger-icon {
+.regalos-section > .regalos-trigger-icon {
   width: clamp(190px, 22vw, 250px);
+}
+
+.dresscode-section > .dresscode-trigger-icon {
+  width: clamp(110px, 13vw, 145px);
 }
 
 .dresscode-trigger-icon,
@@ -1918,7 +1921,7 @@ body {
 
 .dresscode-modal-hero-icon {
   display: none;
-  width: min(190px, 42vw);
+  width: min(115px, 28vw);
   height: auto;
   margin: 0 auto 20px;
   filter: drop-shadow(0 8px 18px rgba(50, 36, 20, 0.14));
