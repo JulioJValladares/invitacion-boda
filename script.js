@@ -17,6 +17,8 @@ const rsvpCupos = document.getElementById("rsvpCupos");
 const rsvpStatus = document.getElementById("rsvpStatus");
 const rsvpSubmit = document.getElementById("rsvpSubmit");
 const rsvpFormContainer = document.getElementById("rsvpFormContainer");
+const rsvpGuestSearch = document.querySelector(".rsvp-guest-search");
+const rsvpClosedMessage = document.getElementById("rsvpClosedMessage");
 const guestSearchInput = document.getElementById("guestSearchInput");
 const guestSearchResults = document.getElementById("guestSearchResults");
 const respuestaField = document.getElementById("respuesta");
@@ -77,6 +79,8 @@ const bgOverlayEl = document.getElementById("bg-overlay");
 const PLAYER_STATE_KEY = "wedding_music_state_v1";
 const DEFAULT_VOLUME = 0.5;
 const RSVP_API_URL = "https://script.google.com/macros/s/AKfycbzemF74qu_QD0OPHsfeVT4lD6GCxiwSecDuBuCByJ2J4OROtTTVkhAvFlbZ0I4KIV5A/exec";
+const EVENT_DATE = new Date("2026-06-27T17:00:00");
+const RSVP_CLOSE_DATE = new Date("2026-06-12T00:00:00");
 const RSVP_LOCAL_KEY_PREFIX = "wedding_rsvp_state_v1_";
 const FINAL_RSVP_STATES = new Set(["CONFIRMADO", "NO_ASISTE"]);
 const GUEST_SEARCH_MIN_LENGTH = 2;
@@ -1459,6 +1463,7 @@ function initializeItineraryScrollProgress() {
   let rafId = null;
 
   function clamp01(value) {
+    if (!Number.isFinite(value)) return 0;
     return Math.min(1, Math.max(0, value));
   }
 
@@ -1480,7 +1485,9 @@ function initializeItineraryScrollProgress() {
     markers.forEach((markerEl) => {
       const markerRect = markerEl.getBoundingClientRect();
       const markerCenterInList = (markerRect.top - listRect.top) + (markerRect.height / 2);
-      const markerFill = clamp01((fillHeightPx - (markerCenterInList - (markerRect.height / 2))) / markerRect.height);
+      const markerFill = markerRect.height
+        ? clamp01((fillHeightPx - (markerCenterInList - (markerRect.height / 2))) / markerRect.height)
+        : 0;
       markerEl.style.setProperty("--itinerary-marker-progress", markerFill.toFixed(4));
     });
   }
@@ -1949,6 +1956,38 @@ function clearRsvpIdentity() {
   if (rsvpCupos) rsvpCupos.textContent = "Cupos asignados: -";
 }
 
+function isRsvpPeriodClosed(referenceDate = new Date()) {
+  if (!(referenceDate instanceof Date) || Number.isNaN(referenceDate.getTime())) return false;
+  if (!(RSVP_CLOSE_DATE instanceof Date) || Number.isNaN(RSVP_CLOSE_DATE.getTime())) return false;
+  return referenceDate >= RSVP_CLOSE_DATE;
+}
+
+function setRsvpElementHidden(element, hidden) {
+  if (!element) return;
+  element.hidden = hidden;
+}
+
+function showRsvpClosedMessage() {
+  setRsvpElementHidden(rsvpClosedMessage, false);
+  setRsvpElementHidden(rsvpGuestSearch, true);
+  setRsvpElementHidden(rsvpGreeting, true);
+  setRsvpElementHidden(rsvpCupos, true);
+  clearGuestSearchResults();
+  hideRsvpThankYou();
+  hideRsvpFormContainer(false);
+  setRsvpFormInteractivity(false, true);
+  if (guestSearchInput) guestSearchInput.disabled = true;
+  setRsvpStatus("", "");
+}
+
+function hideRsvpClosedMessage() {
+  setRsvpElementHidden(rsvpClosedMessage, true);
+  setRsvpElementHidden(rsvpGuestSearch, false);
+  setRsvpElementHidden(rsvpGreeting, false);
+  setRsvpElementHidden(rsvpCupos, false);
+  if (guestSearchInput) guestSearchInput.disabled = false;
+}
+
 function normalizeSearchInputValue(value) {
   return String(value || "")
     .toUpperCase()
@@ -2053,6 +2092,11 @@ function renderGuestSearchResults(results) {
 
     button.append(nameEl, detailEl);
     button.addEventListener("click", () => {
+      if (isRsvpPeriodClosed()) {
+        showRsvpClosedMessage();
+        return;
+      }
+
       currentGuestId = String(guest.id || "").trim();
       guestSearchRequestId += 1;
       if (searchDebounceTimer) {
@@ -2318,6 +2362,14 @@ async function searchGuestsByName(nombre) {
 }
 
 async function submitRsvp(payload) {
+  if (isRsvpPeriodClosed()) {
+    return {
+      ok: false,
+      code: "RSVP_CLOSED",
+      message: "El periodo de confirmación de asistencia ha finalizado."
+    };
+  }
+
   const body = new URLSearchParams({
     action: "submit",
     id: payload.id,
@@ -2369,7 +2421,13 @@ async function initializeRsvp() {
     return;
   }
 
+  if (isRsvpPeriodClosed()) {
+    showRsvpClosedMessage();
+    return;
+  }
+
   const guestIdFromUrl = getGuestIdFromUrl();
+  hideRsvpClosedMessage();
   hideRsvpThankYou();
   showRsvpFormContainer();
   setRsvpFormInteractivity(false, false);
@@ -2378,6 +2436,11 @@ async function initializeRsvp() {
 
   if (guestSearchInput) {
     guestSearchInput.addEventListener("input", async () => {
+      if (isRsvpPeriodClosed()) {
+        showRsvpClosedMessage();
+        return;
+      }
+
       const requestId = guestSearchRequestId + 1;
       guestSearchRequestId = requestId;
       currentGuestId = "";
@@ -2445,6 +2508,11 @@ async function initializeRsvp() {
   rsvpForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    if (isRsvpPeriodClosed()) {
+      showRsvpClosedMessage();
+      return;
+    }
+
     const telefono = telefonoField.value.trim();
     const correo = correoField.value.trim();
     const respuesta = respuestaField.value;
@@ -2489,6 +2557,11 @@ async function initializeRsvp() {
       });
 
       if (!result.ok) {
+        if (result.code === "RSVP_CLOSED") {
+          showRsvpClosedMessage();
+          return;
+        }
+
         if (result.code === "ALREADY_SUBMITTED" && FINAL_RSVP_STATES.has(result.estado)) {
           lockRsvpFromServerState(currentGuestId, result.estado, "Tu respuesta ya fue registrada. Gracias.", {
             guestName: currentGuestName,
@@ -2522,18 +2595,45 @@ async function initializeRsvp() {
 }
 
 // Contador e inicializacion general.
-const weddingDate = new Date("2026-06-27T17:00:00");
-
+const countdownEl = document.getElementById("countdown");
+const eventDayMessageEl = document.getElementById("eventDayMessage");
 const daysEl = document.getElementById("days");
 const hoursEl = document.getElementById("hours");
 const minutesEl = document.getElementById("minutes");
 const secondsEl = document.getElementById("seconds");
 
-function updateCountdown() {
-  if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+function getLocalDayStart(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
 
+function isEventDayOrLater(referenceDate = new Date()) {
+  const eventDayStart = getLocalDayStart(EVENT_DATE);
+  const currentDayStart = getLocalDayStart(referenceDate);
+  if (!eventDayStart || !currentDayStart) return false;
+  return currentDayStart >= eventDayStart;
+}
+
+function setEventDayCountdownMode(isEventDay) {
+  if (countdownEl) countdownEl.hidden = isEventDay;
+  if (eventDayMessageEl) eventDayMessageEl.hidden = !isEventDay;
+}
+
+function updateCountdown() {
   const now = new Date();
-  const diff = weddingDate - now;
+  const isEventDay = isEventDayOrLater(now);
+  setEventDayCountdownMode(isEventDay);
+
+  if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+  if (isEventDay) {
+    daysEl.textContent = "0";
+    hoursEl.textContent = "0";
+    minutesEl.textContent = "0";
+    secondsEl.textContent = "0";
+    return;
+  }
+
+  const diff = EVENT_DATE - now;
 
   if (diff <= 0) {
     daysEl.textContent = "0";

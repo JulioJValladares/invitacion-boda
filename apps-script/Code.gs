@@ -15,6 +15,7 @@ var COL = {
 var ESTADO_PENDIENTE = "PENDIENTE";
 var ESTADO_CONFIRMADO = "CONFIRMADO";
 var ESTADO_NO_ASISTE = "NO_ASISTE";
+var RSVP_CLOSE_DATE = new Date(2026, 5, 12, 0, 0, 0);
 
 function doGet(e) {
   try {
@@ -81,6 +82,14 @@ function doPost(e) {
         ok: false,
         code: "INVALID_ACTION",
         message: "Accion no valida."
+      });
+    }
+
+    if (isRsvpClosed_()) {
+      return jsonResponse_({
+        ok: false,
+        code: "RSVP_CLOSED",
+        message: "El periodo de confirmación de asistencia ha finalizado."
       });
     }
 
@@ -298,6 +307,10 @@ function normalizeRespuesta_(value) {
   var v = String(value || "").trim().toUpperCase();
   if (v === "CONFIRMA" || v === "NO_ASISTE") return v;
   return "";
+}
+
+function isRsvpClosed_() {
+  return new Date() >= RSVP_CLOSE_DATE;
 }
 
 function normalizeName_(value) {

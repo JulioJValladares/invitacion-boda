@@ -88,6 +88,11 @@
             <div><span id="minutes">0</span><small>Min</small></div>
             <div><span id="seconds">0</span><small>Seg</small></div>
           </div>
+          <div class="event-day-message" id="eventDayMessage" hidden>
+            <span class="event-day-message__icon" aria-hidden="true"></span>
+            <p class="event-day-message__title">Hoy es el gran día</p>
+            <p class="event-day-message__text">Gracias por acompañarnos en este momento tan especial.</p>
+          </div>
         </section>
       </div>
 
@@ -213,6 +218,7 @@
         <section class="rsvp-section flow-section reveal-section card-beige wave-section--long" id="rsvpSection" aria-label="Confirmacion de asistencia">
           <img src="assets/icons/confirmacion.svg" alt="Anillo decorativo" class="section-icon-img">
           <h2 class="section-title">Confirmacion de asistencia</h2>
+          <p class="rsvp-deadline">Último día para confirmar 12 de Junio</p>
           <div class="rsvp-guest-search">
             <label for="guestSearchInput">Busca tu nombre</label>
             <input id="guestSearchInput" name="guestSearchInput" type="text" autocomplete="off" placeholder="Escribe tu nombre">
@@ -251,6 +257,10 @@
               <span class="rsvp-post-underline" id="rsvpPostUnderline" aria-hidden="true"></span>
             </p>
             <div class="rsvp-post-particles" id="rsvpPostParticles" aria-hidden="true"></div>
+          </div>
+
+          <div class="rsvp-closed-message" id="rsvpClosedMessage" hidden>
+            <p>Gracias por acompañarnos en este momento tan especial. El periodo de confirmación de asistencia ha finalizado.</p>
           </div>
 
           <p class="rsvp-status" id="rsvpStatus" aria-live="polite"></p>

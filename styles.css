@@ -587,10 +587,15 @@ h1 {
 .countdown {
   margin: 18px auto 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(10px, 2vw, 14px) 0;
   max-width: 520px;
   align-items: start;
+}
+
+.countdown[hidden],
+.event-day-message[hidden] {
+  display: none !important;
 }
 
 .countdown div {
@@ -609,6 +614,10 @@ h1 {
   bottom: 8px;
   width: 1px;
   background: rgba(176, 160, 136, 0.9);
+}
+
+.countdown div:nth-child(even)::after {
+  content: none;
 }
 
 .countdown span {
@@ -2232,6 +2241,14 @@ body {
   margin: 0 0 18px;
 }
 
+.rsvp-deadline {
+  margin: -8px 0 18px;
+  color: var(--text-secondary-color);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
 .rsvp-guest-search {
   margin-bottom: 14px;
 }
@@ -2447,6 +2464,24 @@ body {
 .rsvp-post[data-state="NO_ASISTE"] .rsvp-post-icon {
   color: #6f5f4d;
   background: rgba(184, 165, 140, 0.16);
+}
+
+.rsvp-closed-message {
+  margin: 18px auto 0;
+  max-width: 620px;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  color: var(--text-secondary-color);
+  text-align: center;
+}
+
+.rsvp-closed-message p {
+  margin: 0;
+  font-family: var(--font-main);
+  font-size: clamp(1.05rem, 2.4vw, 1.22rem);
+  line-height: 1.58;
 }
 
 .rsvp-status {
@@ -3243,7 +3278,7 @@ body {
   }
 
   .countdown {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: 100%;
   }
 
@@ -5619,6 +5654,135 @@ body {
   mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z'/%3E%3C/svg%3E") center / contain no-repeat;
   color: transparent;
   filter: drop-shadow(0 2px 8px rgba(45, 32, 20, 0.22));
+}
+
+.event-day-message {
+  position: relative;
+  width: min(100%, 560px);
+  margin: 16px auto 0;
+  padding: clamp(20px, 4vw, 30px) clamp(18px, 4vw, 34px);
+  border: 1px solid rgba(171, 147, 116, 0.34);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top, rgba(255, 250, 243, 0.86), rgba(255, 250, 243, 0) 56%),
+    linear-gradient(180deg, #fbf4ea 0%, #efe1cd 100%);
+  box-shadow:
+    0 14px 28px rgba(73, 53, 34, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  color: var(--color-text-main);
+  text-align: center;
+  overflow: hidden;
+  animation: eventDayReveal 0.85s ease both;
+}
+
+.event-day-message::before,
+.event-day-message::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.event-day-message::before {
+  inset: 12px;
+  border: 1px solid rgba(255, 250, 243, 0.58);
+}
+
+.event-day-message::after {
+  width: 96px;
+  height: 96px;
+  top: -42px;
+  right: -26px;
+  background: rgba(255, 250, 243, 0.42);
+  animation: eventDayGlow 4.8s ease-in-out infinite;
+}
+
+.event-day-message__icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 12px;
+  color: var(--color-accent);
+  filter: drop-shadow(0 3px 8px rgba(73, 53, 34, 0.16));
+  animation: eventDayPulse 3.2s ease-in-out infinite;
+}
+
+.event-day-message__icon::before {
+  content: "";
+  width: 30px;
+  height: 28px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='black' d='M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.event-day-message__title,
+.event-day-message__text {
+  position: relative;
+  z-index: 1;
+}
+
+.event-day-message__title {
+  margin: 0;
+  font-family: "Brittany Signature", "Brittany", cursive;
+  font-size: clamp(2.25rem, 6vw, 3.6rem);
+  line-height: 1.22;
+  color: var(--title-color);
+  text-shadow: 0 1px 2px rgba(45, 32, 20, 0.12);
+}
+
+.event-day-message__text {
+  max-width: 430px;
+  margin: 18px auto 0;
+  color: var(--text-secondary-color);
+  font-size: clamp(1.02rem, 2.4vw, 1.2rem);
+  line-height: 1.5;
+}
+
+@keyframes eventDayReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes eventDayPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes eventDayGlow {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.58;
+    transform: translate3d(-8px, 10px, 0) scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-day-message,
+  .event-day-message::after,
+  .event-day-message__icon {
+    animation: none;
+  }
 }
 
 /* Ajuste puntual de textos en Regalos */
