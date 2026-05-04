@@ -5987,7 +5987,7 @@ body {
   .hero-section.glass-card > .hero-text-stack > .hero-names {
     max-width: min(100%, calc(100vw - 48px));
     font-size: clamp(2.9rem, 13vw, 4.28rem);
-    line-height: 1.24;
+    line-height: 1.42;
   }
 
   .hero-section.glass-card > .hero-text-stack > .hero-quote {
