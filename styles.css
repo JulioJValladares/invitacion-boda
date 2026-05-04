@@ -5927,7 +5927,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(22px, 6.4vw, 34px);
+    row-gap: clamp(30px, 8vw, 48px);
     min-height: auto;
     height: auto;
     overflow: visible;
@@ -5942,6 +5942,7 @@ body {
     position: static;
     transform: none;
     margin: 0;
+    flex: 0 0 auto;
   }
 
   .hero-section.glass-card > .kicker {
@@ -5954,11 +5955,10 @@ body {
     width: 100%;
     min-width: 0;
     max-width: min(100%, calc(100vw - 48px));
-    margin-top: clamp(14px, 4.4vw, 26px);
     overflow: visible;
     white-space: nowrap;
     font-size: clamp(2.9rem, 13vw, 4.28rem);
-    line-height: 1.2;
+    line-height: 1.34;
     letter-spacing: 0;
   }
 
