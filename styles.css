@@ -5955,10 +5955,11 @@ body {
     width: 100%;
     min-width: 0;
     max-width: min(100%, calc(100vw - 48px));
+    padding-block: 0.12em 0.08em;
     overflow: visible;
     white-space: nowrap;
     font-size: clamp(2.9rem, 13vw, 4.28rem);
-    line-height: 1.4;
+    line-height: 1.46;
     letter-spacing: 0;
   }
 
