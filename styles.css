@@ -5927,7 +5927,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    row-gap: clamp(30px, 8vw, 48px);
+    row-gap: clamp(38px, 9.4vw, 58px);
     min-height: auto;
     height: auto;
     overflow: visible;
@@ -5958,7 +5958,7 @@ body {
     overflow: visible;
     white-space: nowrap;
     font-size: clamp(2.9rem, 13vw, 4.28rem);
-    line-height: 1.34;
+    line-height: 1.4;
     letter-spacing: 0;
   }
 
