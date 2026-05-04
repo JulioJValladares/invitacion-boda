@@ -5954,6 +5954,7 @@ body {
     width: 100%;
     min-width: 0;
     max-width: min(100%, calc(100vw - 48px));
+    margin-top: clamp(14px, 4.4vw, 26px);
     overflow: visible;
     white-space: nowrap;
     font-size: clamp(2.9rem, 13vw, 4.28rem);
