@@ -5927,7 +5927,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    row-gap: clamp(38px, 9.4vw, 58px);
+    row-gap: clamp(40px, 9.4vw, 58px);
     min-height: auto;
     height: auto;
     overflow: visible;
@@ -5946,11 +5946,13 @@ body {
   }
 
   .hero-section.glass-card > .kicker {
+    order: 1;
     font-size: clamp(1.34rem, 4.8vw, 1.62rem);
     line-height: 1.28;
   }
 
   .hero-section.glass-card > .hero-names {
+    order: 2;
     display: block;
     width: 100%;
     min-width: 0;
@@ -5964,6 +5966,7 @@ body {
   }
 
   .hero-section.glass-card > .hero-quote {
+    order: 3;
     font-size: clamp(1.52rem, 6.1vw, 1.84rem);
     line-height: 1.55;
   }
