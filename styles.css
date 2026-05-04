@@ -5876,27 +5876,67 @@ body {
   color: var(--color-text-main);
 }
 
-/* Ajuste puntual de textos en la primera seccion */
-.hero-section.glass-card > .kicker,
-.hero-section.glass-card > .hero-names,
-.hero-section.glass-card > .hero-quote {
+/* Estructura de textos de la primera seccion */
+.hero-section.glass-card > .hero-text-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 920px);
+  margin-inline: auto;
+  row-gap: clamp(30px, 4vw, 54px);
+  text-align: center;
+  overflow: visible;
   color: #fffaf3;
   text-shadow:
     0 2px 12px rgba(45, 32, 20, 0.34),
     0 1px 2px rgba(45, 32, 20, 0.28);
 }
 
-.hero-section.glass-card > .kicker {
+.hero-section.glass-card > .hero-text-stack > .kicker,
+.hero-section.glass-card > .hero-text-stack > .hero-names,
+.hero-section.glass-card > .hero-text-stack > .hero-quote {
+  position: static;
+  transform: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  flex: 0 0 auto;
+  color: inherit;
+  text-shadow: inherit;
+}
+
+.hero-section.glass-card > .hero-text-stack > .kicker {
+  order: 1;
+  width: 100%;
   font-size: clamp(1.66rem, 3.05vw, 2.12rem);
+  line-height: 1.28;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
 }
 
-.hero-section.glass-card > .hero-names {
+.hero-section.glass-card > .hero-text-stack > .hero-names {
+  order: 2;
+  display: inline-block;
+  width: auto;
+  max-width: min(100%, calc(100vw - 48px));
+  font-family: "Brittany Signature", "Brittany", cursive;
+  font-weight: 400;
   font-size: clamp(6rem, 13.1vw, 10.6rem);
-  margin-top: clamp(32px, 4.8vw, 58px);
+  line-height: 1.22;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
-.hero-section.glass-card > .hero-quote {
+.hero-section.glass-card > .hero-text-stack > .hero-quote {
+  order: 3;
+  width: min(100%, 34ch);
+  max-width: 34ch;
   font-size: clamp(1.9rem, 3.75vw, 2.56rem);
+  line-height: 1.55;
 }
 
 /* Ajuste puntual de textos en Ceremonia */
@@ -5924,10 +5964,8 @@ body {
 @media (max-width: 760px) {
   .wave-frame > .hero-section.glass-card.flow-section {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    row-gap: clamp(40px, 9.4vw, 58px);
     min-height: auto;
     height: auto;
     overflow: visible;
@@ -5936,37 +5974,23 @@ body {
       calc(clamp(46px, 13vw, 72px) + var(--wave-safe-bottom-simple));
   }
 
-  .hero-section.glass-card > .kicker,
-  .hero-section.glass-card > .hero-names,
-  .hero-section.glass-card > .hero-quote {
-    position: static;
-    transform: none;
-    margin: 0;
-    flex: 0 0 auto;
+  .hero-section.glass-card > .hero-text-stack {
+    width: min(100%, calc(100vw - 32px));
+    row-gap: clamp(36px, 8.8vw, 52px);
   }
 
-  .hero-section.glass-card > .kicker {
-    order: 1;
+  .hero-section.glass-card > .hero-text-stack > .kicker {
     font-size: clamp(1.34rem, 4.8vw, 1.62rem);
     line-height: 1.28;
   }
 
-  .hero-section.glass-card > .hero-names {
-    order: 2;
-    display: block;
-    width: 100%;
-    min-width: 0;
+  .hero-section.glass-card > .hero-text-stack > .hero-names {
     max-width: min(100%, calc(100vw - 48px));
-    padding-block: 0.34em 0.28em;
-    overflow: visible;
-    white-space: nowrap;
     font-size: clamp(2.9rem, 13vw, 4.28rem);
-    line-height: 1.46;
-    letter-spacing: 0;
+    line-height: 1.24;
   }
 
-  .hero-section.glass-card > .hero-quote {
-    order: 3;
+  .hero-section.glass-card > .hero-text-stack > .hero-quote {
     font-size: clamp(1.52rem, 6.1vw, 1.84rem);
     line-height: 1.55;
   }
