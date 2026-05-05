@@ -5897,7 +5897,6 @@ body {
 .hero-section.glass-card > .hero-text-stack > .hero-names,
 .hero-section.glass-card > .hero-text-stack > .hero-quote {
   position: static;
-  transform: none;
   margin: 0;
   padding: 0;
   min-width: 0;
@@ -5920,8 +5919,11 @@ body {
 
 .hero-section.glass-card > .hero-text-stack > .hero-names {
   order: 2;
-  display: inline-block;
-  width: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(0.04em, 0.6vw, 0.12em);
+  width: min(100%, calc(100vw - 48px));
   max-width: min(100%, calc(100vw - 48px));
   font-family: "Brittany Signature", "Brittany", cursive;
   font-weight: 400;
@@ -5929,6 +5931,24 @@ body {
   line-height: 1.22;
   letter-spacing: 0;
   white-space: nowrap;
+}
+
+.hero-section.glass-card > .hero-text-stack > .hero-names > span {
+  display: block;
+  min-width: 0;
+}
+
+.hero-section.glass-card > .hero-text-stack .hero-name-left {
+  justify-self: end;
+}
+
+.hero-section.glass-card > .hero-text-stack .hero-name-center {
+  justify-self: center;
+  text-align: center;
+}
+
+.hero-section.glass-card > .hero-text-stack .hero-name-right {
+  justify-self: start;
 }
 
 .hero-section.glass-card > .hero-text-stack > .hero-quote {
@@ -6017,6 +6037,32 @@ body {
 
   .hero-date-section .hero-date-line {
     font-size: clamp(1.4rem, 5.85vw, 1.78rem);
+  }
+}
+
+@media (min-width: 761px) {
+  .hero-section.glass-card > .hero-text-stack > .hero-names {
+    width: min(100%, 920px);
+    margin-inline: auto;
+    min-height: 1.48em;
+    text-align: center;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 760px) {
+    .wave-frame > .hero-section.glass-card.flow-section,
+    .hero-section.glass-card > .hero-text-stack {
+      overflow: visible;
+    }
+
+    .hero-section.glass-card > .hero-text-stack > .hero-names {
+      height: auto;
+      max-height: none;
+      padding-block: 0.14em 0.08em;
+      overflow: visible;
+      line-height: 1.5;
+    }
   }
 }
 
