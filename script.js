@@ -158,32 +158,32 @@ const INVITATION_INFO_CONFIG = {
     // Editar aqui las imagenes y frases del carrusel.
     slides: [
       {
-        src: "assets/icons_carrusel/carrusel1.jpeg",
+        src: "assets/icons_carrusel/carrusel1.png",
         alt: "Julio y Sara compartiendo un momento especial",
         caption: "Tu sonrisa siempre sera mi lugar favorito."
       },
       {
-        src: "assets/icons_carrusel/carrusel2.jpeg",
+        src: "assets/icons_carrusel/carrusel2.png",
         alt: "Julio y Sara celebrando su historia",
         caption: "Dos vidas, una promesa para toda la vida."
       },
       {
-        src: "assets/icons_carrusel/carrusel3.jpeg",
+        src: "assets/icons_carrusel/carrusel3.png",
         alt: "Julio y Sara en un recuerdo romantico",
         caption: "Contigo, cada atardecer sabe a eternidad."
       },
       {
-        src: "assets/icons_carrusel/carrusel4.jpeg",
+        src: "assets/icons_carrusel/carrusel4.png",
         alt: "Julio y Sara sonriendo juntos",
         caption: "Lo mas bonito de la vida es caminarla contigo."
       },
       {
-        src: "assets/icons_carrusel/carrusel5.jpeg",
+        src: "assets/icons_carrusel/carrusel5.png",
         alt: "Julio y Sara compartiendo una mirada",
         caption: "En tus ojos encontre mi hogar."
       },
       {
-        src: "assets/icons_carrusel/carrusel6.jpeg",
+        src: "assets/icons_carrusel/carrusel6.png",
         alt: "Julio y Sara viviendo un momento feliz",
         caption: "Cada instante contigo se vuelve recuerdo favorito."
       },
